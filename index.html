@@ -1,0 +1,1356 @@
+<!DOCTYPE html>
+<html lang="de">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+<title>Lagerkarte – Luamaya</title>
+<link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/@tabler/icons-webfont@3.10.0/dist/tabler-icons.min.css" />
+<link rel="preconnect" href="https://fonts.googleapis.com" />
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+<link href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:wght@300;400;500&family=Inter:wght@300;400;500&family=Space+Grotesk:wght@700&display=swap" rel="stylesheet" />
+<style>
+*, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+:root {
+  --creme:       #F7F3ED;
+  --creme2:      #EFE9DF;
+  --creme3:      #E5DDD1;
+  --gold:        #C4A35A;
+  --gold-light:  #DFC07A;
+  --gold-dark:   #9B7A38;
+  --ink:         #2C2820;
+  --ink2:        #6B5F52;
+  --ink3:        #A89880;
+  --surface:     #FDFAF6;
+  --border:      rgba(196,163,90,0.22);
+  --border2:     rgba(196,163,90,0.40);
+  --radius:      6px;
+  --radius-lg:   10px;
+  --font-display: 'Cormorant Garamond', Georgia, serif;
+  --font-body:    'Inter', system-ui, sans-serif;
+}
+
+body {
+  font-family: var(--font-body);
+  background: var(--creme);
+  color: var(--ink);
+  min-height: 100vh;
+  font-size: 14px;
+  line-height: 1.6;
+}
+
+/* ── Header ── */
+header {
+  background: var(--surface);
+  border-bottom: 1px solid var(--border2);
+  padding: 0 2rem;
+  display: flex;
+  align-items: center;
+  height: 60px;
+  position: sticky;
+  top: 0;
+  z-index: 20;
+}
+
+.logo {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  text-decoration: none;
+}
+
+.logo-mark {
+  width: 32px;
+  height: 32px;
+  border: 1.5px solid var(--gold);
+  border-radius: 50%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  flex-shrink: 0;
+}
+
+.logo-mark svg { width: 16px; height: 16px; }
+
+.logo-text {
+  font-family: var(--font-display);
+  font-size: 22px;
+  font-weight: 400;
+  letter-spacing: 0.18em;
+  color: var(--ink);
+  text-transform: uppercase;
+}
+
+.logo-sub {
+  font-family: var(--font-body);
+  font-size: 10px;
+  letter-spacing: 0.12em;
+  color: var(--ink3);
+  text-transform: uppercase;
+  margin-left: 2px;
+  margin-top: -2px;
+}
+
+.header-divider {
+  width: 1px;
+  height: 28px;
+  background: var(--border2);
+  margin: 0 1.25rem;
+}
+
+.header-title {
+  font-family: var(--font-body);
+  font-size: 12px;
+  letter-spacing: 0.1em;
+  text-transform: uppercase;
+  color: var(--ink3);
+  font-weight: 400;
+}
+
+.status-badge {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  padding: 0 10px;
+  height: 34px;
+  border: 1px solid var(--border2);
+  border-radius: var(--radius);
+  background: var(--surface);
+}
+.status-dot {
+  width: 8px;
+  height: 8px;
+  border-radius: 50%;
+  background: #E57373;
+  transition: background 0.4s;
+  flex-shrink: 0;
+}
+
+.header-right {
+  margin-left: auto;
+  display: flex;
+  gap: 8px;
+  align-items: center;
+}
+
+.header-center {
+  position: absolute;
+  left: 50%;
+  transform: translateX(-50%);
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  pointer-events: none;
+}
+
+.stashify-logo {
+  font-family: 'Space Grotesk', 'Inter', sans-serif;
+  font-weight: 700;
+  font-size: 19px;
+  letter-spacing: 0.22em;
+  color: var(--ink);
+  text-transform: uppercase;
+  background: linear-gradient(90deg, var(--gold-dark) 0%, var(--gold) 50%, var(--gold-dark) 100%);
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
+  background-clip: text;
+}
+
+/* ── Main ── */
+main { padding: 1.75rem 2rem; max-width: 900px; margin: 0 auto; }
+
+/* ── Buttons ── */
+button {
+  background: var(--surface);
+  border: 1px solid var(--border2);
+  border-radius: var(--radius);
+  color: var(--ink2);
+  font-size: 12px;
+  font-family: var(--font-body);
+  letter-spacing: 0.04em;
+  padding: 0 14px;
+  height: 34px;
+  cursor: pointer;
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  transition: all 0.15s;
+  white-space: nowrap;
+}
+
+button:hover { background: var(--creme2); border-color: var(--gold); color: var(--ink); }
+button:active { transform: scale(0.97); }
+
+button.primary {
+  background: var(--gold);
+  color: var(--surface);
+  border-color: var(--gold);
+  font-weight: 500;
+}
+button.primary:hover { background: var(--gold-dark); border-color: var(--gold-dark); }
+
+button.danger {
+  color: #8B3A3A;
+  border-color: rgba(139,58,58,0.3);
+}
+button.danger:hover { background: #FDF0F0; }
+
+/* ── Inputs ── */
+input[type="text"], input[type="search"], textarea, select {
+  background: var(--surface);
+  border: 1px solid var(--border2);
+  border-radius: var(--radius);
+  color: var(--ink);
+  font-size: 13px;
+  font-family: var(--font-body);
+  padding: 0 12px;
+  height: 34px;
+  outline: none;
+  transition: border-color 0.15s, box-shadow 0.15s;
+}
+
+input[type="text"]:focus, input[type="search"]:focus, textarea:focus {
+  border-color: var(--gold);
+  box-shadow: 0 0 0 3px rgba(196,163,90,0.15);
+}
+
+textarea {
+  height: auto;
+  padding: 8px 12px;
+  resize: vertical;
+  min-height: 72px;
+  width: 100%;
+  line-height: 1.5;
+}
+
+/* ── Toolbar ── */
+.toolbar {
+  display: flex;
+  gap: 8px;
+  align-items: center;
+  margin-bottom: 1.25rem;
+  flex-wrap: wrap;
+}
+
+.search-wrap {
+  display: flex;
+  gap: 8px;
+  flex: 1;
+  min-width: 220px;
+}
+.search-wrap input { flex: 1; }
+
+.sep {
+  width: 1px;
+  height: 22px;
+  background: var(--border2);
+  margin: 0 2px;
+}
+
+/* ── Legend ── */
+.legend {
+  display: flex;
+  gap: 8px;
+  align-items: center;
+  flex-wrap: wrap;
+  margin-bottom: 1.25rem;
+  font-size: 11px;
+  letter-spacing: 0.05em;
+  color: var(--ink3);
+  text-transform: uppercase;
+}
+
+.legend-item {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  cursor: pointer;
+  padding: 4px 10px;
+  border-radius: 999px;
+  border: 1px solid var(--border);
+  background: var(--surface);
+  transition: all 0.15s;
+  user-select: none;
+  font-size: 11px;
+  letter-spacing: 0.05em;
+  color: var(--ink2);
+}
+
+.legend-item:hover { border-color: var(--gold); background: var(--creme2); }
+.legend-item.active { border-color: var(--gold); background: var(--creme2); color: var(--ink); }
+
+.legend-dot {
+  width: 12px;
+  height: 12px;
+  border-radius: 3px;
+  flex-shrink: 0;
+}
+
+/* ── Search results ── */
+.search-result {
+  background: #F0F7F0;
+  border: 1px solid rgba(60,130,80,0.3);
+  border-radius: var(--radius);
+  padding: 10px 14px;
+  font-size: 13px;
+  color: #2D6040;
+  margin-bottom: 1rem;
+  display: flex;
+  align-items: flex-start;
+  gap: 8px;
+}
+
+.not-found {
+  background: #FDF0F0;
+  border: 1px solid rgba(139,58,58,0.25);
+  border-radius: var(--radius);
+  padding: 10px 14px;
+  font-size: 13px;
+  color: #7A3030;
+  margin-bottom: 1rem;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.multi-result {
+  background: #F0F7F0;
+  border: 1px solid rgba(60,130,80,0.3);
+  border-radius: var(--radius);
+  padding: 10px 14px;
+  font-size: 13px;
+  color: #2D6040;
+  margin-bottom: 1rem;
+}
+.multi-result ul { margin: 6px 0 0 18px; line-height: 1.9; }
+
+/* ── Grid ── */
+.grid-wrap { overflow-x: auto; padding-bottom: 1rem; }
+
+.lager-grid {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+  min-width: 560px;
+}
+
+.reihe-row {
+  display: flex;
+  align-items: stretch;
+  gap: 10px;
+}
+
+.reihe-name {
+  font-size: 11px;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  color: var(--ink3);
+  font-weight: 400;
+  min-width: 56px;
+  text-align: right;
+  display: flex;
+  align-items: center;
+  justify-content: flex-end;
+  flex-shrink: 0;
+  cursor: pointer;
+  position: relative;
+}
+
+.reihe-name:hover::after {
+  content: '✎';
+  font-size: 10px;
+  margin-left: 4px;
+  color: var(--gold);
+  text-transform: none;
+}
+
+.reihe-name-input {
+  font-size: 11px;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  font-family: var(--font-body);
+  color: var(--ink);
+  width: 56px;
+  text-align: right;
+  border: 1px solid var(--gold);
+  border-radius: var(--radius);
+  background: var(--surface);
+  padding: 2px 5px;
+  height: 24px;
+  outline: none;
+  box-shadow: 0 0 0 2px rgba(196,163,90,0.2);
+}
+
+.palette-slots { display: flex; gap: 8px; }
+
+.palette {
+  width: 94px;
+  min-height: 84px;
+  border-radius: var(--radius-lg);
+  border: 1px solid var(--border2);
+  background: var(--surface);
+  cursor: pointer;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 3px;
+  transition: transform 0.12s, border-color 0.15s, box-shadow 0.15s;
+  position: relative;
+  padding: 20px 6px 8px;
+  user-select: none;
+}
+
+.palette:hover {
+  transform: translateY(-2px);
+  border-color: var(--gold);
+  box-shadow: 0 4px 16px rgba(196,163,90,0.18);
+}
+
+.palette.highlighted {
+  border-color: var(--gold);
+  box-shadow: 0 0 0 3px rgba(196,163,90,0.35);
+  transform: translateY(-2px);
+  z-index: 2;
+}
+
+.palette-nr {
+  font-size: 9px;
+  letter-spacing: 0.06em;
+  color: var(--ink3);
+  position: absolute;
+  top: 6px;
+  left: 8px;
+  font-weight: 400;
+  text-transform: uppercase;
+}
+
+.order-tag {
+  font-size: 10px;
+  font-weight: 500;
+  color: var(--ink);
+  background: rgba(239,233,223,0.85);
+  border-radius: 3px;
+  padding: 1px 5px;
+  text-align: center;
+  word-break: break-all;
+  line-height: 1.5;
+  max-width: 82px;
+  border: 1px solid rgba(196,163,90,0.2);
+}
+
+.name-tag {
+  font-size: 10px;
+  font-weight: 400;
+  font-style: italic;
+  color: var(--ink2);
+  background: rgba(239,233,223,0.75);
+  border-radius: 3px;
+  padding: 1px 5px;
+  text-align: center;
+  word-break: break-all;
+  line-height: 1.5;
+  max-width: 82px;
+  border: 1px solid rgba(196,163,90,0.15);
+}
+
+.order-tag.match, .name-tag.match {
+  background: var(--gold);
+  color: var(--surface);
+  border-color: var(--gold-dark);
+}
+
+.palette-note {
+  font-size: 9px;
+  color: var(--ink3);
+  text-align: center;
+  margin-top: 1px;
+  max-width: 82px;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+  letter-spacing: 0.03em;
+}
+
+.palette-empty {
+  font-size: 11px;
+  color: var(--ink3);
+  letter-spacing: 0.04em;
+}
+
+.plus-icon {
+  font-size: 18px;
+  color: var(--creme3);
+  margin-bottom: 2px;
+}
+
+/* ── Modal ── */
+.modal-bg {
+  position: fixed;
+  inset: 0;
+  background: rgba(44,40,32,0.45);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  z-index: 100;
+}
+
+.modal {
+  background: var(--surface);
+  border-radius: var(--radius-lg);
+  border: 1px solid var(--border2);
+  padding: 1.75rem;
+  width: 350px;
+  max-width: 95vw;
+  box-shadow: 0 12px 48px rgba(44,40,32,0.2);
+}
+
+.modal-header {
+  display: flex;
+  align-items: baseline;
+  gap: 8px;
+  margin-bottom: 1.25rem;
+  padding-bottom: 1rem;
+  border-bottom: 1px solid var(--border);
+}
+
+.modal-header h3 {
+  font-family: var(--font-display);
+  font-size: 20px;
+  font-weight: 400;
+  letter-spacing: 0.04em;
+  color: var(--ink);
+}
+
+.modal-header span {
+  font-size: 11px;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  color: var(--gold);
+}
+
+.modal label {
+  font-size: 11px;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  color: var(--ink3);
+  display: block;
+  margin-bottom: 5px;
+  margin-top: 14px;
+}
+
+.modal label:first-of-type { margin-top: 0; }
+
+.hint {
+  font-size: 11px;
+  color: var(--ink3);
+  margin-top: 4px;
+  font-style: italic;
+}
+
+.modal-divider {
+  border: none;
+  border-top: 1px solid var(--border);
+  margin: 14px 0 0;
+}
+
+.color-picker {
+  display: flex;
+  gap: 8px;
+  flex-wrap: wrap;
+  margin-top: 8px;
+}
+
+.color-opt {
+  width: 26px;
+  height: 26px;
+  border-radius: 5px;
+  cursor: pointer;
+  border: 2px solid transparent;
+  transition: border-color 0.15s, transform 0.12s;
+  flex-shrink: 0;
+}
+
+.color-opt:hover { transform: scale(1.15); }
+.color-opt.selected { border-color: var(--ink) !important; }
+
+.modal-actions {
+  display: flex;
+  gap: 8px;
+  margin-top: 1.5rem;
+  padding-top: 1rem;
+  border-top: 1px solid var(--border);
+}
+
+.modal-actions button { flex: 1; justify-content: center; }
+
+/* ── Login Screen ── */
+#loginScreen {
+  position: fixed;
+  inset: 0;
+  background: var(--creme);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  z-index: 999;
+}
+
+.login-box {
+  background: var(--surface);
+  border: 1px solid var(--border2);
+  border-radius: var(--radius-lg);
+  padding: 2.5rem 2rem;
+  width: 340px;
+  max-width: 95vw;
+  box-shadow: 0 12px 48px rgba(44,40,32,0.12);
+}
+
+.login-logo {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 10px;
+  margin-bottom: 2rem;
+}
+
+.login-wordmark {
+  font-family: 'Space Grotesk', sans-serif;
+  font-weight: 700;
+  font-size: 22px;
+  letter-spacing: 0.22em;
+  background: linear-gradient(90deg, var(--gold-dark), var(--gold), var(--gold-dark));
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
+  background-clip: text;
+}
+
+.login-box h2 {
+  font-family: var(--font-display);
+  font-size: 20px;
+  font-weight: 400;
+  color: var(--ink);
+  margin-bottom: 0.25rem;
+  text-align: center;
+}
+
+.login-sub {
+  font-size: 12px;
+  color: var(--ink3);
+  text-align: center;
+  margin-bottom: 1.75rem;
+  letter-spacing: 0.04em;
+}
+
+.login-field {
+  margin-bottom: 1rem;
+}
+
+.login-field label {
+  font-size: 11px;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  color: var(--ink3);
+  display: block;
+  margin-bottom: 5px;
+}
+
+.login-field input {
+  width: 100%;
+  height: 38px;
+  padding: 0 12px;
+  background: var(--surface);
+  border: 1px solid var(--border2);
+  border-radius: var(--radius);
+  font-size: 14px;
+  font-family: var(--font-body);
+  color: var(--ink);
+  outline: none;
+  transition: border-color 0.15s, box-shadow 0.15s;
+}
+
+.login-field input:focus {
+  border-color: var(--gold);
+  box-shadow: 0 0 0 3px rgba(196,163,90,0.15);
+}
+
+.login-btn {
+  width: 100%;
+  height: 40px;
+  background: var(--gold);
+  color: var(--surface);
+  border: none;
+  border-radius: var(--radius);
+  font-size: 13px;
+  font-family: var(--font-body);
+  font-weight: 500;
+  letter-spacing: 0.06em;
+  cursor: pointer;
+  margin-top: 0.5rem;
+  transition: background 0.15s;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+}
+.login-btn:hover { background: var(--gold-dark); }
+.login-btn:disabled { opacity: 0.6; cursor: not-allowed; }
+
+.login-error {
+  background: #FDF0F0;
+  border: 1px solid rgba(139,58,58,0.25);
+  border-radius: var(--radius);
+  padding: 8px 12px;
+  font-size: 12px;
+  color: #7A3030;
+  margin-top: 0.75rem;
+  display: none;
+}
+
+.user-badge {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  font-size: 11px;
+  color: var(--ink3);
+  letter-spacing: 0.04em;
+  max-width: 160px;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.logout-btn {
+  background: none;
+  border: 1px solid var(--border2);
+  border-radius: var(--radius);
+  color: var(--ink3);
+  font-size: 11px;
+  height: 28px;
+  padding: 0 10px;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  gap: 4px;
+  transition: all 0.15s;
+  white-space: nowrap;
+}
+.logout-btn:hover { border-color: var(--gold); color: var(--ink); background: var(--creme2); }
+
+/* ── Toast ── */
+.toast {
+  position: fixed;
+  bottom: 1.5rem;
+  left: 50%;
+  transform: translateX(-50%);
+  background: var(--ink);
+  color: var(--creme);
+  padding: 9px 20px;
+  border-radius: 999px;
+  font-size: 12px;
+  letter-spacing: 0.05em;
+  z-index: 200;
+  pointer-events: none;
+  opacity: 0;
+  transition: opacity 0.2s;
+}
+.toast.show { opacity: 1; }
+
+/* ── Section label ── */
+.section-label {
+  font-size: 10px;
+  letter-spacing: 0.12em;
+  text-transform: uppercase;
+  color: var(--ink3);
+  margin-bottom: 0.75rem;
+  display: flex;
+  align-items: center;
+  gap: 10px;
+}
+.section-label::after {
+  content: '';
+  flex: 1;
+  height: 1px;
+  background: var(--border2);
+}
+</style>
+</head>
+<body>
+
+<header>
+  <div class="logo">
+    <div>
+      <div class="logo-text">Luamaya</div>
+      <div class="logo-sub">Big B2B Verwaltung</div>
+    </div>
+  </div>
+  <div class="header-divider"></div>
+  <div class="header-title">Lagerübersicht</div>
+  <div class="header-center">
+    <svg width="36" height="36" viewBox="0 0 500 500" xmlns="http://www.w3.org/2000/svg" style="flex-shrink:0;">
+      <!-- Hintergrund -->
+      <rect width="500" height="500" rx="80" fill="#EFE9DF"/>
+      <!-- Reihe 3 (unten): 3 Pakete -->
+      <rect x="90"  y="310" width="90" height="80" rx="10" fill="#C4A35A"/>
+      <rect x="205" y="310" width="90" height="80" rx="10" fill="#DFC07A"/>
+      <rect x="320" y="310" width="90" height="80" rx="10" fill="#C4A35A"/>
+      <!-- Highlights unten -->
+      <rect x="90"  y="328" width="90" height="10" fill="#FDFAF6" opacity="0.35"/>
+      <rect x="205" y="328" width="90" height="10" fill="#FDFAF6" opacity="0.35"/>
+      <rect x="320" y="328" width="90" height="10" fill="#FDFAF6" opacity="0.35"/>
+      <!-- Reihe 2 (Mitte): 2 Pakete -->
+      <rect x="147" y="215" width="90" height="85" rx="10" fill="#D4B06A"/>
+      <rect x="263" y="215" width="90" height="85" rx="10" fill="#E8C87A"/>
+      <!-- Highlights Mitte -->
+      <rect x="147" y="233" width="90" height="10" fill="#FDFAF6" opacity="0.35"/>
+      <rect x="263" y="233" width="90" height="10" fill="#FDFAF6" opacity="0.35"/>
+      <!-- Reihe 1 (oben): 1 Paket -->
+      <rect x="200" y="120" width="100" height="84" rx="10" fill="#F0D898"/>
+      <!-- Highlight oben -->
+      <rect x="200" y="138" width="100" height="10" fill="#FDFAF6" opacity="0.4"/>
+      <!-- Akzent-Pfeil -->
+      <circle cx="390" cy="108" r="22" fill="#9B7A38"/>
+      <polyline points="390,121 390,97" fill="none" stroke="#FDFAF6" stroke-width="3.5" stroke-linecap="round"/>
+      <polyline points="382,106 390,97 398,106" fill="none" stroke="#FDFAF6" stroke-width="3.5" stroke-linecap="round" stroke-linejoin="round"/>
+      <!-- Deko-Punkte -->
+      <circle cx="112" cy="175" r="7" fill="#C4A35A" opacity="0.6"/>
+      <circle cx="392" cy="265" r="5" fill="#DFC07A" opacity="0.5"/>
+      <circle cx="130" cy="410" r="4" fill="#E5DDD1" opacity="0.7"/>
+    </svg>
+    <span class="stashify-logo">STASHIFY</span>
+  </div>
+  <div class="header-right">
+    <div class="status-badge">
+      <span class="status-dot" id="statusDot"></span>
+      <span id="statusTxt" style="font-size:11px;letter-spacing:0.05em;color:var(--ink3);">Verbinde …</span>
+    </div>
+    <div class="user-badge" id="userBadge" style="display:none;">
+      <i class="ti ti-user" style="font-size:13px;flex-shrink:0;"></i>
+      <span id="userEmail" style="overflow:hidden;text-overflow:ellipsis;white-space:nowrap;max-width:130px;"></span>
+    </div>
+    <button class="logout-btn" id="logoutBtn" style="display:none;"><i class="ti ti-logout" style="font-size:13px;"></i> Abmelden</button>
+    <button id="exportBtn"><i class="ti ti-download" aria-hidden="true"></i> Firebase-Export</button>
+  </div>
+</header>
+
+<main>
+  <div class="toolbar">
+    <div class="search-wrap">
+      <input type="search" id="searchInput" placeholder="Name oder Ordernummer suchen …" style="flex:1;" />
+      <button id="searchBtn"><i class="ti ti-search" aria-hidden="true"></i> Suchen</button>
+    </div>
+    <div class="sep"></div>
+    <button id="clearSearch" title="Suche zurücksetzen"><i class="ti ti-x" aria-hidden="true"></i></button>
+  </div>
+
+  <div id="searchResult"></div>
+
+  <div class="legend">
+    <span style="margin-right:4px;">Filter</span>
+    <div class="legend-item active" onclick="filterByColor('all')" id="leg-all">
+      <div class="legend-dot" style="background:var(--creme2);border:1px solid var(--border2);"></div> Alle
+    </div>
+    <div class="legend-item" onclick="filterByColor('#B5D4F4')" id="leg-1">
+      <div class="legend-dot" style="background:#B5D4F4;"></div> Frei
+    </div>
+    <div class="legend-item" onclick="filterByColor('#DFC07A')" id="leg-2">
+      <div class="legend-dot" style="background:#DFC07A;"></div> Belegt
+    </div>
+    <div class="legend-item" onclick="filterByColor('#C8E6C9')" id="leg-3">
+      <div class="legend-dot" style="background:#C8E6C9;"></div> Gelabelt
+    </div>
+    <div class="legend-item" onclick="filterByColor('#F5C4B3')" id="leg-4">
+      <div class="legend-dot" style="background:#F5C4B3;"></div> Achtung
+    </div>
+    <div class="legend-item" onclick="filterByColor('#E8D5F5')" id="leg-5">
+      <div class="legend-dot" style="background:#E8D5F5;"></div> Sonstiges
+    </div>
+  </div>
+
+  <div class="section-label">Lagerplan – Vogelperspektive</div>
+
+  <div class="grid-wrap">
+    <div class="lager-grid" id="lagerGrid"></div>
+  </div>
+</main>
+
+<div id="modalBg" class="modal-bg" style="display:none;" role="dialog" aria-modal="true">
+  <div class="modal">
+    <div class="modal-header">
+      <h3 id="modalTitle">Palettenplatz</h3>
+      <span id="modalSubtitle"></span>
+    </div>
+
+    <label>Name <span style="font-size:10px;color:var(--ink3);text-transform:none;letter-spacing:0;">(Firma, Person, Projekt …)</span></label>
+    <input type="text" id="modalName" placeholder="z.B. Müller GmbH" style="width:100%;" />
+
+    <hr class="modal-divider" />
+
+    <label>Ordernummern</label>
+    <textarea id="modalOrders" placeholder="z.B.&#10;ORD-2024-001&#10;ORD-2024-002"></textarea>
+    <div class="hint">Eine pro Zeile oder kommagetrennt</div>
+
+    <label>Notiz <span style="font-size:10px;color:var(--ink3);text-transform:none;letter-spacing:0;">(optional)</span></label>
+    <input type="text" id="modalNote" placeholder="z.B. Anlieferung KW24, fragil …" style="width:100%;" />
+
+    <label>Farbe</label>
+    <div class="color-picker" id="colorPicker"></div>
+
+    <div class="modal-actions">
+      <button class="primary" id="modalSave"><i class="ti ti-check" aria-hidden="true"></i> Speichern</button>
+      <button class="danger" id="modalClear"><i class="ti ti-trash" aria-hidden="true"></i> Leeren</button>
+      <button id="modalCancel">Abbrechen</button>
+    </div>
+  </div>
+</div>
+
+<!-- ── Login Screen ── -->
+<div id="loginScreen">
+  <div class="login-box">
+    <div class="login-logo">
+      <svg width="32" height="32" viewBox="0 0 500 500" xmlns="http://www.w3.org/2000/svg">
+        <rect width="500" height="500" rx="80" fill="#EFE9DF"/>
+        <rect x="90"  y="310" width="90" height="80" rx="10" fill="#C4A35A"/>
+        <rect x="205" y="310" width="90" height="80" rx="10" fill="#DFC07A"/>
+        <rect x="320" y="310" width="90" height="80" rx="10" fill="#C4A35A"/>
+        <rect x="147" y="215" width="90" height="85" rx="10" fill="#D4B06A"/>
+        <rect x="263" y="215" width="90" height="85" rx="10" fill="#E8C87A"/>
+        <rect x="200" y="120" width="100" height="84" rx="10" fill="#F0D898"/>
+        <circle cx="390" cy="108" r="22" fill="#9B7A38"/>
+        <polyline points="390,121 390,97" fill="none" stroke="#FDFAF6" stroke-width="3.5" stroke-linecap="round"/>
+        <polyline points="382,106 390,97 398,106" fill="none" stroke="#FDFAF6" stroke-width="3.5" stroke-linecap="round" stroke-linejoin="round"/>
+      </svg>
+      <span class="login-wordmark">STASHIFY</span>
+    </div>
+    <h2>Anmelden</h2>
+    <p class="login-sub">Lagerverwaltung – nur für autorisierte Nutzer</p>
+    <div class="login-field">
+      <label>E-Mail</label>
+      <input type="email" id="loginEmail" placeholder="name@firma.de" autocomplete="email" />
+    </div>
+    <div class="login-field">
+      <label>Passwort</label>
+      <input type="password" id="loginPassword" placeholder="••••••••" autocomplete="current-password" />
+    </div>
+    <button class="login-btn" id="loginBtn">
+      <i class="ti ti-login"></i> Anmelden
+    </button>
+    <div class="login-error" id="loginError"></div>
+  </div>
+</div>
+
+<div class="toast" id="toast"></div>
+
+<script type="module">
+import { initializeApp }                        from "https://www.gstatic.com/firebasejs/11.0.0/firebase-app.js";
+import { getDatabase, ref, set, remove, onValue } from "https://www.gstatic.com/firebasejs/11.0.0/firebase-database.js";
+import { getAuth, signInWithEmailAndPassword, signOut, onAuthStateChanged }
+                                                 from "https://www.gstatic.com/firebasejs/11.0.0/firebase-auth.js";
+
+// ── Firebase Init ─────────────────────────────────────────────
+const firebaseConfig = {
+  apiKey: "AIzaSyCt1YcCkBeShjYj_xBpNjiNFmCuXwYRqi4",
+  authDomain: "stashing-21ec0.firebaseapp.com",
+  databaseURL: "https://stashing-21ec0-default-rtdb.europe-west1.firebasedatabase.app",
+  projectId: "stashing-21ec0",
+  storageBucket: "stashing-21ec0.firebasestorage.app",
+  messagingSenderId: "957031728508",
+  appId: "1:957031728508:web:4f3a2e81e035b4ac8190f9"
+};
+const app  = initializeApp(firebaseConfig);
+const db   = getDatabase(app);
+const auth = getAuth(app);
+
+const dataRef     = ref(db, "lager/slots");
+const rowNamesRef = ref(db, "lager/rowNames");
+
+// ── App State ─────────────────────────────────────────────────
+const ROWS_DEFAULT = [
+  { name: "Reihe A", slots: 6 },
+  { name: "Reihe B", slots: 6 },
+  { name: "Reihe C", slots: 6 },
+  { name: "Reihe D", slots: 6 },
+  { name: "Reihe E", slots: 6 },
+  { name: "Reihe F", slots: 6 },
+];
+let ROWS = ROWS_DEFAULT.map(r => ({ ...r }));
+
+const COLORS = [
+  { hex: "",        label: "Leer"      },
+  { hex: "#B5D4F4", label: "Frei"      },
+  { hex: "#DFC07A", label: "Belegt"    },
+  { hex: "#C8E6C9", label: "Gelabelt"  },
+  { hex: "#F5C4B3", label: "Achtung"   },
+  { hex: "#E8D5F5", label: "Sonstiges" },
+];
+
+let data             = {};
+let activeFilter     = "all";
+let highlightedKeys  = [];
+let searchMatchTerms = [];
+let editingKey       = null;
+let dbListenersSub   = null;
+
+// ── Helpers ───────────────────────────────────────────────────
+function parseOrders(raw) {
+  return raw.split(/[\n,;]+/).map(s => s.trim()).filter(Boolean);
+}
+function showToast(msg) {
+  const t = document.getElementById("toast");
+  t.textContent = msg;
+  t.classList.add("show");
+  setTimeout(() => t.classList.remove("show"), 2400);
+}
+function showStatus(online) {
+  const dot = document.getElementById("statusDot");
+  const txt = document.getElementById("statusTxt");
+  if (!dot) return;
+  dot.style.background = online ? "#4CAF50" : "#E57373";
+  txt.textContent = online ? "Live" : "Verbinde …";
+}
+
+// ── Auth UI ───────────────────────────────────────────────────
+function showLogin() {
+  document.getElementById("loginScreen").style.display = "flex";
+  document.getElementById("loginError").style.display  = "none";
+  document.getElementById("loginPassword").value = "";
+}
+function hideLogin() {
+  document.getElementById("loginScreen").style.display = "none";
+}
+
+document.getElementById("loginBtn").onclick = async () => {
+  const email    = document.getElementById("loginEmail").value.trim();
+  const password = document.getElementById("loginPassword").value;
+  const errEl    = document.getElementById("loginError");
+  const btn      = document.getElementById("loginBtn");
+
+  if (!email || !password) {
+    errEl.textContent = "Bitte E-Mail und Passwort eingeben.";
+    errEl.style.display = "block";
+    return;
+  }
+  btn.disabled = true;
+  btn.innerHTML = '<i class="ti ti-loader-2" style="animation:spin 1s linear infinite"></i> Anmelden …';
+  errEl.style.display = "none";
+
+  try {
+    await signInWithEmailAndPassword(auth, email, password);
+    // onAuthStateChanged handles the rest
+  } catch (err) {
+    btn.disabled = false;
+    btn.innerHTML = '<i class="ti ti-login"></i> Anmelden';
+    const msgs = {
+      "auth/invalid-credential":    "E-Mail oder Passwort falsch.",
+      "auth/user-not-found":        "Kein Konto mit dieser E-Mail.",
+      "auth/wrong-password":        "Passwort falsch.",
+      "auth/too-many-requests":     "Zu viele Versuche. Kurz warten.",
+      "auth/invalid-email":         "Ungültige E-Mail-Adresse.",
+    };
+    errEl.textContent = msgs[err.code] || "Fehler: " + err.message;
+    errEl.style.display = "block";
+  }
+};
+
+// Login auch mit Enter
+document.getElementById("loginPassword").addEventListener("keydown", e => {
+  if (e.key === "Enter") document.getElementById("loginBtn").click();
+});
+document.getElementById("loginEmail").addEventListener("keydown", e => {
+  if (e.key === "Enter") document.getElementById("loginPassword").focus();
+});
+
+document.getElementById("logoutBtn").onclick = () => signOut(auth);
+
+// ── Auth State ────────────────────────────────────────────────
+onAuthStateChanged(auth, user => {
+  if (user) {
+    hideLogin();
+    document.getElementById("userEmail").textContent = user.email;
+    document.getElementById("userBadge").style.display  = "flex";
+    document.getElementById("logoutBtn").style.display  = "flex";
+    startDataListeners();
+    showToast("Willkommen, " + user.email.split("@")[0] + " 👋");
+  } else {
+    showLogin();
+    document.getElementById("userBadge").style.display = "none";
+    document.getElementById("logoutBtn").style.display = "none";
+    showStatus(false);
+    data = {};
+    renderGrid();
+  }
+});
+
+// ── Firebase Listeners (nur wenn eingeloggt) ──────────────────
+function startDataListeners() {
+  onValue(dataRef, snap => {
+    data = snap.val() || {};
+    showStatus(true);
+    renderGrid();
+  }, () => showStatus(false));
+
+  onValue(rowNamesRef, snap => {
+    const saved = snap.val();
+    if (saved && saved.length === ROWS.length) {
+      saved.forEach((name, i) => { if (name) ROWS[i].name = name; });
+      renderGrid();
+    }
+  });
+}
+
+// ── Speichern ─────────────────────────────────────────────────
+function saveSlot(key, value) {
+  if (value) set(ref(db, "lager/slots/" + key), value);
+  else       remove(ref(db, "lager/slots/" + key));
+}
+function saveRowNames() {
+  set(rowNamesRef, ROWS.map(r => r.name));
+}
+
+// ── Grid ──────────────────────────────────────────────────────
+function renderGrid() {
+  const grid = document.getElementById("lagerGrid");
+  grid.innerHTML = "";
+  ROWS.forEach((row, ri) => {
+    const rowDiv = document.createElement("div");
+    rowDiv.className = "reihe-row";
+
+    const lbl = document.createElement("div");
+    lbl.className = "reihe-name";
+    lbl.textContent = row.name;
+    lbl.title = "Klicken zum Umbenennen";
+    lbl.onclick = () => startRenameRow(lbl, ri);
+    rowDiv.appendChild(lbl);
+
+    const slots = document.createElement("div");
+    slots.className = "palette-slots";
+
+    for (let s = 0; s < row.slots; s++) {
+      const key = ri + "_" + s;
+      const d   = data[key] || {};
+      const orders       = d.orders || [];
+      const name         = d.name   || "";
+      const isHighlighted = highlightedKeys.includes(key);
+
+      const pal = document.createElement("div");
+      pal.className = "palette" + (isHighlighted ? " highlighted" : "");
+      // Empty slots default to blue
+      const effectiveColor = d.color || ((!name && orders.length === 0) ? "#B5D4F4" : "");
+      if (activeFilter !== "all" && effectiveColor !== activeFilter) pal.style.opacity = "0.18";
+      if (effectiveColor) pal.style.background = effectiveColor;
+
+      const nr = document.createElement("div");
+      nr.className = "palette-nr";
+      const prefix = row.name.replace(/^reihe\s*/i, "").trim().slice(0, 3) || String.fromCharCode(65 + ri);
+      nr.textContent = prefix + (s + 1);
+      pal.appendChild(nr);
+
+      if (name || orders.length > 0) {
+        if (name) {
+          const nt = document.createElement("div");
+          const isMatch = searchMatchTerms.some(t => name.toLowerCase().includes(t));
+          nt.className = "name-tag" + (isMatch ? " match" : "");
+          nt.textContent = name;
+          pal.appendChild(nt);
+        }
+        orders.forEach(ord => {
+          const ot = document.createElement("div");
+          const isMatch = searchMatchTerms.some(t => ord.toLowerCase().includes(t));
+          ot.className = "order-tag" + (isMatch ? " match" : "");
+          ot.textContent = ord;
+          pal.appendChild(ot);
+        });
+        if (d.note) {
+          const nt2 = document.createElement("div");
+          nt2.className = "palette-note";
+          nt2.textContent = d.note;
+          pal.appendChild(nt2);
+        }
+      } else {
+        const ic = document.createElement("i");
+        ic.className = "ti ti-plus plus-icon";
+        ic.setAttribute("aria-hidden", "true");
+        pal.appendChild(ic);
+        const emp = document.createElement("div");
+        emp.className = "palette-empty";
+        emp.textContent = "Leer";
+        pal.appendChild(emp);
+      }
+      pal.onclick = () => openModal(key, row.name, s + 1);
+      slots.appendChild(pal);
+    }
+    rowDiv.appendChild(slots);
+    grid.appendChild(rowDiv);
+  });
+}
+
+// ── Reihe umbenennen ──────────────────────────────────────────
+function startRenameRow(lbl, ri) {
+  const input = document.createElement("input");
+  input.type = "text";
+  input.className = "reihe-name-input";
+  input.value = ROWS[ri].name;
+  input.maxLength = 20;
+  lbl.replaceWith(input);
+  input.select();
+  input.focus();
+
+  function commit() {
+    const newName = input.value.trim();
+    if (newName) { ROWS[ri].name = newName; saveRowNames(); showToast("Reihe umbenannt"); }
+    renderGrid();
+  }
+  input.addEventListener("keydown", e => {
+    if (e.key === "Enter")  { e.preventDefault(); commit(); }
+    if (e.key === "Escape") { renderGrid(); }
+  });
+  input.addEventListener("blur", commit);
+}
+
+// ── Modal ─────────────────────────────────────────────────────
+function openModal(key, rowName, slotNum) {
+  editingKey = key;
+  const d = data[key] || {};
+  document.getElementById("modalTitle").textContent    = rowName;
+  document.getElementById("modalSubtitle").textContent = "Platz " + slotNum;
+  document.getElementById("modalName").value           = d.name || "";
+  document.getElementById("modalOrders").value         = (d.orders || []).join("\n");
+  document.getElementById("modalNote").value           = d.note  || "";
+  renderColorPicker(d.color || "");
+  document.getElementById("modalBg").style.display = "flex";
+  setTimeout(() => document.getElementById("modalName").focus(), 50);
+}
+
+function renderColorPicker(selected) {
+  const cp = document.getElementById("colorPicker");
+  cp.innerHTML = "";
+  COLORS.forEach(c => {
+    const div = document.createElement("div");
+    div.className = "color-opt" + (selected === c.hex ? " selected" : "");
+    div.title = c.label;
+    div.style.background = c.hex || "var(--creme2)";
+    if (!c.hex) div.style.border = "2px solid var(--border2)";
+    div.onclick = () => {
+      cp.querySelectorAll(".color-opt").forEach(x => x.classList.remove("selected"));
+      div.classList.add("selected");
+    };
+    cp.appendChild(div);
+  });
+}
+
+function getSelectedColor() {
+  const opts = Array.from(document.querySelectorAll(".color-opt"));
+  const sel  = document.querySelector(".color-opt.selected");
+  if (!sel) return "";
+  return COLORS[opts.indexOf(sel)]?.hex || "";
+}
+
+document.getElementById("modalSave").onclick = () => {
+  const name   = document.getElementById("modalName").value.trim();
+  const orders = parseOrders(document.getElementById("modalOrders").value);
+  const note   = document.getElementById("modalNote").value.trim();
+  const color  = getSelectedColor();
+  saveSlot(editingKey, (name || orders.length > 0 || color) ? { name, orders, note, color } : null);
+  document.getElementById("modalBg").style.display = "none";
+  showToast("Gespeichert");
+};
+
+document.getElementById("modalClear").onclick = () => {
+  saveSlot(editingKey, null);
+  highlightedKeys = []; searchMatchTerms = [];
+  document.getElementById("modalBg").style.display = "none";
+  showToast("Platz geleert");
+};
+
+document.getElementById("modalCancel").onclick = () => {
+  document.getElementById("modalBg").style.display = "none";
+};
+document.getElementById("modalBg").onclick = e => {
+  if (e.target === document.getElementById("modalBg"))
+    document.getElementById("modalBg").style.display = "none";
+};
+document.addEventListener("keydown", e => {
+  if (e.key === "Escape") document.getElementById("modalBg").style.display = "none";
+});
+
+// ── Suche ─────────────────────────────────────────────────────
+function doSearch() {
+  const raw = document.getElementById("searchInput").value.trim();
+  const q   = raw.toLowerCase();
+  const res = document.getElementById("searchResult");
+  highlightedKeys = []; searchMatchTerms = [];
+
+  if (!q) { res.innerHTML = ""; renderGrid(); return; }
+
+  let results = [];
+  for (const [key, d] of Object.entries(data)) {
+    const matched = [];
+    if (d.name && d.name.toLowerCase().includes(q)) matched.push({ text: d.name, type: "name" });
+    (d.orders || []).forEach(o => { if (o.toLowerCase().includes(q)) matched.push({ text: o, type: "order" }); });
+    if (matched.length > 0) {
+      const [ri, si] = key.split("_").map(Number);
+      results.push({ key, ri, si, matched, d });
+      highlightedKeys.push(key);
+      searchMatchTerms.push(q);
+    }
+  }
+
+  if (results.length === 0) {
+    res.innerHTML = '<div class="not-found"><i class="ti ti-alert-circle"></i> Nichts gefunden für &bdquo;' + raw + '&ldquo;</div>';
+  } else if (results.length === 1) {
+    const r = results[0];
+    const labels = r.matched.map(m => (m.type === "name" ? "&#10106; " : "") + m.text).join(", ");
+    res.innerHTML = '<div class="search-result"><i class="ti ti-map-pin" style="font-size:16px;flex-shrink:0;margin-top:1px;"></i><div><strong>' + labels + '</strong> &rarr; ' + ROWS[r.ri].name + ', Platz ' + (r.si + 1) + (r.d.note ? ' &ndash; <em>' + r.d.note + '</em>' : '') + '</div></div>';
+  } else {
+    let html = '<div class="multi-result"><i class="ti ti-map-pin"></i> <strong>' + results.length + ' Treffer</strong> für &bdquo;' + raw + '&ldquo;:<ul>';
+    results.forEach(r => {
+      const labels = r.matched.map(m => (m.type === "name" ? "&#10106; " : "") + m.text).join(", ");
+      html += '<li>' + labels + ' &rarr; ' + ROWS[r.ri].name + ', Platz ' + (r.si + 1) + (r.d.note ? ' (' + r.d.note + ')' : '') + '</li>';
+    });
+    html += '</ul></div>';
+    res.innerHTML = html;
+  }
+  renderGrid();
+}
+
+document.getElementById("searchBtn").onclick = doSearch;
+document.getElementById("searchInput").addEventListener("keydown", e => { if (e.key === "Enter") doSearch(); });
+document.getElementById("clearSearch").onclick = () => {
+  document.getElementById("searchInput").value = "";
+  document.getElementById("searchResult").innerHTML = "";
+  highlightedKeys = []; searchMatchTerms = [];
+  renderGrid();
+};
+
+// ── Filter ────────────────────────────────────────────────────
+const LEG_MAP = { all: "leg-all", "#B5D4F4": "leg-1", "#DFC07A": "leg-2", "#C8E6C9": "leg-3", "#F5C4B3": "leg-4", "#E8D5F5": "leg-5" };
+function filterByColor(color) {
+  activeFilter = color;
+  document.querySelectorAll(".legend-item").forEach(el => el.classList.remove("active"));
+  const el = document.getElementById(LEG_MAP[color]);
+  if (el) el.classList.add("active");
+  renderGrid();
+}
+window.filterByColor = filterByColor;
+
+// ── Export (Firebase-kompatibel) ──────────────────────────────
+document.getElementById("exportBtn").onclick = () => {
+  const firebaseJson = { lager: { slots: data } };
+  const blob = new Blob([JSON.stringify(firebaseJson, null, 2)], { type: "application/json" });
+  const a = document.createElement("a");
+  a.href = URL.createObjectURL(blob);
+  a.download = "stashify-firebase-" + new Date().toISOString().slice(0, 10) + ".json";
+  a.click();
+  showToast("Firebase-Export erstellt");
+};
+
+// ── Spinner Keyframe ──────────────────────────────────────────
+const style = document.createElement("style");
+style.textContent = "@keyframes spin { to { transform: rotate(360deg); } }";
+document.head.appendChild(style);
+
+// Init
+showStatus(false);
+renderGrid();
+</script>
+</body>
+</html>
