@@ -1,0 +1,896 @@
+<!DOCTYPE html>
+<html lang="de">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no" />
+<meta name="apple-mobile-web-app-capable" content="yes" />
+<meta name="mobile-web-app-capable" content="yes" />
+<meta name="theme-color" content="#F5F1EA" />
+<title>Stashify Scanner</title>
+<link rel="icon" type="image/svg+xml" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 500 500'%3E%3Crect width='500' height='500' rx='80' fill='%23EDE8DF'/%3E%3Crect x='90' y='310' width='90' height='80' rx='10' fill='%238A9E8C'/%3E%3Crect x='205' y='310' width='90' height='80' rx='10' fill='%23A8BA9A'/%3E%3Crect x='320' y='310' width='90' height='80' rx='10' fill='%238A9E8C'/%3E%3Crect x='147' y='215' width='90' height='85' rx='10' fill='%23B8956A'/%3E%3Crect x='263' y='215' width='90' height='85' rx='10' fill='%23CEAD87'/%3E%3Crect x='200' y='120' width='100' height='84' rx='10' fill='%23C4B49A'/%3E%3Ccircle cx='390' cy='108' r='22' fill='%236B7D6D'/%3E%3C/svg%3E" />
+<script src="https://unpkg.com/html5-qrcode@2.3.8/html5-qrcode.min.js"></script>
+<style>
+*, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+:root {
+  --creme: #F5F1EA; --creme2: #EDE8DF; --creme3: #E3DDD4;
+  --sage: #8A9E8C; --sage-light: #A8BA9A; --sage-dark: #6B7D6D;
+  --clay: #B8956A; --clay-light: #CEAD87;
+  --ink: #2E2B26; --ink2: #6B6358; --ink3: #A09890;
+  --surface: #FAF8F4;
+  --border: rgba(138,158,140,0.20); --border2: rgba(138,158,140,0.35);
+  --radius: 10px; --radius-lg: 16px;
+  --green: #4CAF50; --red: #E57373;
+  --font: 'Inter', system-ui, sans-serif;
+}
+body { font-family: var(--font); background: var(--creme); color: var(--ink); min-height: 100dvh; font-size: 15px; -webkit-tap-highlight-color: transparent; overscroll-behavior: none; }
+
+/* ── Login ── */
+#loginScreen { position: fixed; inset: 0; background: var(--creme); display: flex; align-items: center; justify-content: center; z-index: 999; padding: 1.5rem; }
+.login-box { background: var(--surface); border: 1px solid var(--border2); border-radius: var(--radius-lg); padding: 2rem 1.75rem; width: 100%; max-width: 360px; box-shadow: 0 8px 32px rgba(44,40,32,0.10); }
+.login-logo { display: flex; align-items: center; justify-content: center; gap: 10px; margin-bottom: 1.75rem; }
+.login-wordmark { font-size: 20px; font-weight: 700; letter-spacing: 0.2em; color: var(--sage-dark); text-transform: uppercase; }
+.login-field { margin-bottom: 1rem; }
+.login-field label { display: block; font-size: 11px; letter-spacing: 0.08em; text-transform: uppercase; color: var(--ink3); margin-bottom: 5px; }
+.login-field input { width: 100%; height: 44px; padding: 0 14px; border: 1px solid var(--border2); border-radius: var(--radius); background: var(--surface); font-size: 15px; color: var(--ink); outline: none; font-family: var(--font); }
+.login-field input:focus { border-color: var(--sage); box-shadow: 0 0 0 3px rgba(138,158,140,0.15); }
+.login-btn { width: 100%; height: 46px; background: var(--sage); color: white; border: none; border-radius: var(--radius); font-size: 15px; font-weight: 500; cursor: pointer; display: flex; align-items: center; justify-content: center; gap: 8px; font-family: var(--font); }
+.login-btn:active { background: var(--sage-dark); }
+.login-error { background: #FDF0F0; border: 1px solid rgba(139,58,58,0.25); border-radius: var(--radius); padding: 10px 14px; font-size: 13px; color: #7A3030; margin-top: 0.75rem; display: none; }
+
+/* ── App ── */
+#app { display: none; flex-direction: column; min-height: 100dvh; }
+
+/* ── Topbar ── */
+.topbar { background: var(--surface); border-bottom: 1px solid var(--border2); padding: 0 1rem; height: 56px; display: flex; align-items: center; gap: 10px; position: sticky; top: 0; z-index: 50; flex-shrink: 0; }
+.topbar-wordmark { font-size: 15px; font-weight: 700; letter-spacing: 0.18em; color: var(--sage-dark); text-transform: uppercase; }
+.topbar-right { margin-left: auto; display: flex; align-items: center; gap: 8px; }
+.status-dot { width: 8px; height: 8px; border-radius: 50%; background: var(--red); transition: background 0.3s; }
+.status-dot.online { background: var(--green); }
+.logout-btn { background: none; border: 1px solid var(--border2); border-radius: 8px; color: var(--ink3); font-size: 12px; height: 30px; padding: 0 10px; cursor: pointer; font-family: var(--font); }
+
+/* ── Content ── */
+.content { flex: 1; padding: 1.25rem 1rem 3rem; max-width: 480px; margin: 0 auto; width: 100%; }
+
+/* ── Mode Tabs ── */
+.mode-tabs { display: grid; grid-template-columns: repeat(5, 1fr); gap: 4px; margin-bottom: 1.25rem; }
+.mode-tab { background: var(--surface); border: 1px solid var(--border2); border-radius: var(--radius); padding: 8px 2px; text-align: center; cursor: pointer; font-size: 10px; color: var(--ink2); line-height: 1.3; font-family: var(--font); transition: all 0.12s; }
+.mode-tab .tab-icon { font-size: 18px; display: block; margin-bottom: 3px; }
+.mode-tab.active { background: var(--sage); border-color: var(--sage); color: white; }
+.mode-tab:active { transform: scale(0.97); }
+
+/* ── Karte (mobile grid) ── */
+.karte-wrap { overflow-x: auto; padding-bottom: 8px; }
+.karte-reihe { margin-bottom: 10px; }
+.karte-reihe-label {
+  font-size: 10px; letter-spacing: 0.1em; text-transform: uppercase;
+  color: var(--ink3); margin-bottom: 5px; font-weight: 500;
+}
+.karte-slots { display: flex; gap: 5px; flex-wrap: wrap; }
+.karte-slot {
+  width: 64px; min-height: 70px; border-radius: 8px;
+  border: 1px solid var(--border2); background: var(--surface);
+  padding: 5px 4px; cursor: pointer; transition: all 0.12s;
+  display: flex; flex-direction: column; align-items: center;
+  text-align: center; position: relative;
+}
+.karte-slot:active { transform: scale(0.95); }
+.karte-slot.highlighted { border-color: var(--sage); box-shadow: 0 0 0 2px rgba(138,158,140,0.4); }
+.karte-slot-nr { font-size: 9px; color: var(--ink3); margin-bottom: 3px; font-weight: 600; letter-spacing: 0.05em; }
+.karte-slot-name { font-size: 9px; color: var(--ink); font-weight: 600; line-height: 1.3; word-break: break-word; margin-bottom: 2px; }
+.karte-slot-orders { font-size: 8px; color: var(--ink2); line-height: 1.4; word-break: break-all; }
+.karte-slot-empty { font-size: 9px; color: var(--ink3); font-style: italic; margin-top: auto; }
+
+/* ── Slot Detail Overlay (tap on karte slot) ── */
+#slotDetailBg {
+  display: none; position: fixed; inset: 0;
+  background: rgba(44,40,32,0.55); z-index: 100;
+  align-items: flex-end; justify-content: center;
+}
+#slotDetailBg.active { display: flex; }
+.slot-detail-sheet {
+  background: var(--surface); border-radius: 18px 18px 0 0;
+  width: 100%; max-width: 480px; padding: 1.5rem 1.25rem 2rem;
+  box-shadow: 0 -8px 32px rgba(44,40,32,0.18);
+  max-height: 80dvh; overflow-y: auto;
+}
+.slot-detail-handle {
+  width: 40px; height: 4px; background: var(--creme3);
+  border-radius: 2px; margin: 0 auto 1.25rem;
+}
+.slot-detail-actions { display: flex; flex-direction: column; gap: 8px; margin-top: 1rem; }
+
+/* ── Search ── */
+.search-box {
+  display: flex; gap: 8px; margin-bottom: 1rem;
+}
+.search-input {
+  flex: 1; height: 44px; padding: 0 14px;
+  border: 1px solid var(--border2); border-radius: var(--radius);
+  background: var(--surface); font-size: 15px; color: var(--ink);
+  outline: none; font-family: var(--font);
+}
+.search-input:focus { border-color: var(--sage); box-shadow: 0 0 0 3px rgba(138,158,140,0.12); }
+.search-go {
+  height: 44px; padding: 0 16px; background: var(--sage); color: white;
+  border: none; border-radius: var(--radius); font-size: 14px;
+  cursor: pointer; font-family: var(--font); white-space: nowrap;
+}
+.search-result-item {
+  background: var(--surface); border: 1px solid var(--border2);
+  border-radius: var(--radius); padding: 12px 14px; margin-bottom: 8px;
+  cursor: pointer; transition: border-color 0.12s;
+}
+.search-result-item:active { border-color: var(--sage); background: rgba(138,158,140,0.06); }
+.search-result-place { font-size: 13px; font-weight: 700; color: var(--ink); margin-bottom: 3px; }
+.search-result-match { font-size: 12px; color: var(--sage-dark); font-weight: 600; }
+.search-result-rest  { font-size: 11px; color: var(--ink3); margin-top: 2px; }
+
+/* ── Cards ── */
+.card { background: var(--surface); border: 1px solid var(--border2); border-radius: var(--radius-lg); padding: 1.25rem; margin-bottom: 1rem; transition: border-color 0.2s; }
+.card.done { border-color: var(--sage); background: rgba(138,158,140,0.05); }
+.card-title { font-size: 11px; letter-spacing: 0.1em; text-transform: uppercase; color: var(--ink3); margin-bottom: 0.9rem; display: flex; align-items: center; gap: 7px; }
+.card.done .card-title { color: var(--sage-dark); }
+.step-badge { width: 20px; height: 20px; border-radius: 50%; background: var(--sage); color: white; font-size: 11px; display: flex; align-items: center; justify-content: center; flex-shrink: 0; }
+
+/* ── Palette Preview Box ── */
+.palette-preview {
+  border-radius: var(--radius);
+  border: 1px solid var(--border2);
+  background: var(--creme2);
+  padding: 13px 14px;
+  margin-bottom: 12px;
+}
+.palette-preview-header {
+  display: flex; align-items: flex-start; justify-content: space-between; gap: 8px; margin-bottom: 8px;
+}
+.palette-preview-place {
+  font-size: 13px; font-weight: 700; color: var(--ink); line-height: 1.3;
+}
+.palette-preview-sublabel {
+  font-size: 10px; color: var(--ink3); letter-spacing: 0.05em; margin-top: 1px;
+}
+.status-pill {
+  font-size: 10px; letter-spacing: 0.06em; text-transform: uppercase;
+  padding: 3px 9px; border-radius: 99px; white-space: nowrap; flex-shrink: 0;
+}
+.status-pill.occupied { background: var(--clay-light); color: white; }
+.status-pill.free     { background: #B5D4F4; color: var(--ink2); }
+
+.palette-name-row {
+  font-size: 13px; font-weight: 600; color: var(--ink); margin-bottom: 6px;
+  display: flex; align-items: center; gap: 5px;
+}
+.order-list {
+  display: flex; flex-wrap: wrap; gap: 5px; margin-bottom: 4px;
+}
+.order-pill {
+  font-size: 11px; background: var(--surface); border: 1px solid var(--border2);
+  border-radius: 5px; padding: 3px 9px; color: var(--ink2); font-weight: 500;
+}
+.palette-note {
+  font-size: 11px; color: var(--ink3); font-style: italic; margin-top: 5px;
+}
+.palette-empty-label {
+  font-size: 13px; color: var(--ink3); font-style: italic;
+}
+
+/* ── Scan Button ── */
+.scan-btn { width: 100%; height: 50px; background: var(--sage); color: white; border: none; border-radius: var(--radius); font-size: 14px; font-weight: 500; cursor: pointer; display: flex; align-items: center; justify-content: center; gap: 10px; font-family: var(--font); transition: background 0.12s; margin-bottom: 0; }
+.scan-btn:active { background: var(--sage-dark); }
+
+/* ── Manual Input ── */
+.manual-row { display: flex; gap: 8px; margin-top: 8px; }
+.manual-input { flex: 1; height: 42px; padding: 0 12px; border: 1px solid var(--border2); border-radius: var(--radius); background: var(--surface); font-size: 14px; color: var(--ink); outline: none; font-family: var(--font); }
+.manual-input:focus { border-color: var(--sage); }
+.manual-confirm { height: 42px; padding: 0 14px; background: var(--sage); color: white; border: none; border-radius: var(--radius); cursor: pointer; font-size: 14px; font-family: var(--font); white-space: nowrap; }
+
+/* ── Arrow ── */
+.transfer-arrow { text-align: center; font-size: 28px; color: var(--sage); margin: -2px 0; line-height: 1; }
+
+/* ── Action Buttons ── */
+.action-btn { width: 100%; height: 54px; border: none; border-radius: var(--radius); font-size: 16px; font-weight: 600; cursor: pointer; display: flex; align-items: center; justify-content: center; gap: 10px; font-family: var(--font); margin-top: 6px; transition: background 0.12s; }
+.action-btn.confirm { background: var(--sage); color: white; }
+.action-btn.confirm:active { background: var(--sage-dark); }
+.action-btn.confirm:disabled { opacity: 0.38; cursor: not-allowed; }
+.action-btn.danger  { background: #C0604A; color: white; }
+.action-btn.danger:active { background: #A0503A; }
+.action-btn.danger:disabled { opacity: 0.38; cursor: not-allowed; }
+.action-btn.reset   { background: var(--surface); color: var(--ink3); border: 1px solid var(--border2); height: 42px; font-size: 14px; font-weight: 400; margin-top: 10px; }
+
+/* ── Scanner Overlay ── */
+#scannerOverlay { display: none; position: fixed; inset: 0; background: rgba(0,0,0,0.93); z-index: 200; flex-direction: column; align-items: center; justify-content: center; gap: 0; }
+#scannerOverlay.active { display: flex; }
+.scanner-label { color: white; font-size: 14px; margin-bottom: 1.25rem; text-align: center; padding: 0 1.5rem; opacity: 0.9; line-height: 1.5; }
+#reader { width: min(88vw, 300px); border-radius: 12px; overflow: hidden; }
+.scanner-cancel { margin-top: 1.75rem; background: rgba(255,255,255,0.15); border: 1px solid rgba(255,255,255,0.3); color: white; border-radius: var(--radius); height: 44px; padding: 0 28px; font-size: 14px; cursor: pointer; font-family: var(--font); }
+
+/* ── Toast ── */
+.toast { position: fixed; bottom: 28px; left: 50%; transform: translateX(-50%); background: var(--ink); color: var(--creme); padding: 12px 22px; border-radius: 999px; font-size: 13px; z-index: 300; opacity: 0; transition: opacity 0.2s; pointer-events: none; max-width: 88vw; text-align: center; white-space: nowrap; }
+.toast.show { opacity: 1; }
+.toast.success { background: var(--sage-dark); }
+.toast.error   { background: #8B3A3A; }
+</style>
+</head>
+<body>
+
+<!-- ── Login ── -->
+<div id="loginScreen">
+  <div class="login-box">
+    <div class="login-logo">
+      <svg width="30" height="30" viewBox="0 0 500 500" xmlns="http://www.w3.org/2000/svg">
+        <rect width="500" height="500" rx="80" fill="#EDE8DF"/>
+        <rect x="90" y="310" width="90" height="80" rx="10" fill="#8A9E8C"/>
+        <rect x="205" y="310" width="90" height="80" rx="10" fill="#A8BA9A"/>
+        <rect x="320" y="310" width="90" height="80" rx="10" fill="#8A9E8C"/>
+        <rect x="147" y="215" width="90" height="85" rx="10" fill="#B8956A"/>
+        <rect x="263" y="215" width="90" height="85" rx="10" fill="#CEAD87"/>
+        <rect x="200" y="120" width="100" height="84" rx="10" fill="#C4B49A"/>
+        <circle cx="390" cy="108" r="22" fill="#6B7D6D"/>
+        <polyline points="390,121 390,97" fill="none" stroke="#FAF8F4" stroke-width="3.5" stroke-linecap="round"/>
+        <polyline points="382,106 390,97 398,106" fill="none" stroke="#FAF8F4" stroke-width="3.5" stroke-linecap="round" stroke-linejoin="round"/>
+      </svg>
+      <span class="login-wordmark">STASHIFY</span>
+    </div>
+    <div class="login-field"><label>E-Mail</label><input type="email" id="loginEmail" placeholder="name@firma.de" autocomplete="email" /></div>
+    <div class="login-field"><label>Passwort</label><input type="password" id="loginPassword" placeholder="••••••••" /></div>
+    <button class="login-btn" id="loginBtn">🔑 Anmelden</button>
+    <div class="login-error" id="loginError"></div>
+  </div>
+</div>
+
+<!-- ── App ── -->
+<div id="app">
+  <div class="topbar">
+    <svg width="24" height="24" viewBox="0 0 500 500" xmlns="http://www.w3.org/2000/svg" style="flex-shrink:0;">
+      <rect width="500" height="500" rx="80" fill="#EDE8DF"/>
+      <rect x="90" y="310" width="90" height="80" rx="10" fill="#8A9E8C"/>
+      <rect x="205" y="310" width="90" height="80" rx="10" fill="#A8BA9A"/>
+      <rect x="320" y="310" width="90" height="80" rx="10" fill="#8A9E8C"/>
+      <rect x="147" y="215" width="90" height="85" rx="10" fill="#B8956A"/>
+      <rect x="200" y="120" width="100" height="84" rx="10" fill="#C4B49A"/>
+      <circle cx="390" cy="108" r="22" fill="#6B7D6D"/>
+    </svg>
+    <span class="topbar-wordmark">STASHIFY</span>
+    <div class="topbar-right">
+      <span class="status-dot" id="statusDot"></span>
+      <button class="logout-btn" id="logoutBtn">Abmelden</button>
+    </div>
+  </div>
+
+  <div class="content">
+    <div class="mode-tabs">
+      <div class="mode-tab active" id="tab-einlagern" onclick="setMode('einlagern')"><span class="tab-icon">📦</span>Einlagern</div>
+      <div class="mode-tab"        id="tab-umlagern"  onclick="setMode('umlagern')"><span class="tab-icon">🔄</span>Umlagern</div>
+      <div class="mode-tab"        id="tab-auslagern" onclick="setMode('auslagern')"><span class="tab-icon">🚚</span>Auslagern</div>
+      <div class="mode-tab"        id="tab-info"      onclick="setMode('info')"><span class="tab-icon">🔍</span>Info</div>
+      <div class="mode-tab"        id="tab-karte"     onclick="setMode('karte')"><span class="tab-icon">🗺</span>Karte</div>
+    </div>
+    <div id="modeContent"></div>
+  </div>
+</div>
+
+<!-- ── Slot Detail Sheet ── -->
+<div id="slotDetailBg">
+  <div class="slot-detail-sheet">
+    <div class="slot-detail-handle"></div>
+    <div id="slotDetailContent"></div>
+    <div class="slot-detail-actions" id="slotDetailActions"></div>
+  </div>
+</div>
+
+<!-- ── Scanner Overlay ── -->
+<div id="scannerOverlay">
+  <div class="scanner-label" id="scannerLabel">QR-Code scannen</div>
+  <div id="reader"></div>
+  <button class="scanner-cancel" id="scannerCancel">Abbrechen</button>
+</div>
+
+<div class="toast" id="toast"></div>
+
+<script type="module">
+import { initializeApp }                           from "https://www.gstatic.com/firebasejs/11.0.0/firebase-app.js";
+import { getDatabase, ref, set, remove, onValue }  from "https://www.gstatic.com/firebasejs/11.0.0/firebase-database.js";
+import { getAuth, signInWithEmailAndPassword, signOut, onAuthStateChanged }
+                                                   from "https://www.gstatic.com/firebasejs/11.0.0/firebase-auth.js";
+
+const firebaseConfig = {
+  apiKey: "AIzaSyCt1YcCkBeShjYj_xBpNjiNFmCuXwYRqi4",
+  authDomain: "stashing-21ec0.firebaseapp.com",
+  databaseURL: "https://stashing-21ec0-default-rtdb.europe-west1.firebasedatabase.app",
+  projectId: "stashing-21ec0",
+  storageBucket: "stashing-21ec0.firebasestorage.app",
+  messagingSenderId: "957031728508",
+  appId: "1:957031728508:web:4f3a2e81e035b4ac8190f9"
+};
+const fbApp = initializeApp(firebaseConfig);
+const db    = getDatabase(fbApp);
+const auth  = getAuth(fbApp);
+
+let currentMode = "einlagern";
+let lagerData   = {};
+let rowConfig   = [];
+let html5Qr     = null;
+
+// ── Toast ─────────────────────────────────────────────────────
+function toast(msg, type = "") {
+  const t = document.getElementById("toast");
+  t.textContent = msg;
+  t.className = "toast show" + (type ? " " + type : "");
+  clearTimeout(t._t);
+  t._t = setTimeout(() => t.classList.remove("show"), 2800);
+}
+
+// ── Firebase ──────────────────────────────────────────────────
+function startListeners() {
+  onValue(ref(db, "lager/slots"), snap => {
+    lagerData = snap.val() || {};
+    document.getElementById("statusDot").classList.add("online");
+    renderMode();
+  });
+  onValue(ref(db, "lager/rowConfig"), snap => {
+    const s = snap.val();
+    if (s && Array.isArray(s)) rowConfig = s;
+    syncRowsLocal();
+    renderMode();
+  });
+}
+function saveSlot(key, value) {
+  return value ? set(ref(db, "lager/slots/" + key), value)
+               : remove(ref(db, "lager/slots/" + key));
+}
+
+// ── Helpers ───────────────────────────────────────────────────
+function parseQR(raw) {
+  if (!raw) return null;
+  if (raw.startsWith("STASHIFY:slot:")) return { type: "slot", value: raw.replace("STASHIFY:slot:", "") };
+  return { type: "slot", value: raw }; // treat any scan as a slot key by default
+}
+
+function keyToLabel(key) {
+  if (!key) return key;
+  const [ri, si] = key.split("_").map(Number);
+  if (rowConfig[ri]) return rowConfig[ri].name + " · Platz " + (si + 1);
+  return "Platz " + key;
+}
+
+// ── Palette Preview ───────────────────────────────────────────
+// Shows everything on a slot: name, all orders, note — no selection needed,
+// because there is always exactly ONE palette per slot.
+function palettePreviewHTML(key) {
+  const d      = lagerData[key];
+  const label  = keyToLabel(key);
+
+  if (!d || (!d.name && !(d.orders||[]).length && !d.color)) {
+    return `
+      <div class="palette-preview">
+        <div class="palette-preview-header">
+          <div>
+            <div class="palette-preview-place">${label}</div>
+            <div class="palette-preview-sublabel">Lagerplatz</div>
+          </div>
+          <span class="status-pill free">Leer</span>
+        </div>
+        <div class="palette-empty-label">Keine Palette eingelagert</div>
+      </div>`;
+  }
+
+  const orders     = d.orders || [];
+  const ordersHTML = orders.length
+    ? `<div class="order-list">${orders.map(o => `<span class="order-pill">${o}</span>`).join("")}</div>`
+    : "";
+
+  return `
+    <div class="palette-preview">
+      <div class="palette-preview-header">
+        <div>
+          <div class="palette-preview-place">${label}</div>
+          <div class="palette-preview-sublabel">Lagerplatz</div>
+        </div>
+        <span class="status-pill occupied">Belegt</span>
+      </div>
+      ${d.name ? `<div class="palette-name-row">📦 ${d.name}</div>` : ""}
+      ${orders.length ? `
+        <div style="font-size:10px;letter-spacing:0.07em;text-transform:uppercase;color:var(--ink3);margin-bottom:5px;">
+          Ordernummern (${orders.length})
+        </div>
+        ${ordersHTML}` : ""}
+      ${d.note ? `<div class="palette-note">📝 ${d.note}</div>` : ""}
+    </div>`;
+}
+
+// ── Scanner ───────────────────────────────────────────────────
+function startScan(label, onResult) {
+  document.getElementById("scannerLabel").textContent = label;
+  document.getElementById("scannerOverlay").classList.add("active");
+  if (html5Qr) { html5Qr.clear().catch(() => {}); html5Qr = null; }
+  html5Qr = new Html5Qrcode("reader");
+  html5Qr.start(
+    { facingMode: "environment" },
+    { fps: 12, qrbox: { width: 210, height: 210 }, aspectRatio: 1.0 },
+    decoded => { stopScan(); onResult(decoded); },
+    () => {}
+  ).catch(() => { stopScan(); toast("Kamera nicht verfügbar – manuell eingeben", "error"); });
+}
+function stopScan() {
+  document.getElementById("scannerOverlay").classList.remove("active");
+  if (html5Qr) { html5Qr.stop().then(() => { html5Qr.clear(); html5Qr = null; }).catch(() => {}); }
+}
+document.getElementById("scannerCancel").onclick = stopScan;
+
+// ── Auth ──────────────────────────────────────────────────────
+document.getElementById("loginBtn").onclick = async () => {
+  const email = document.getElementById("loginEmail").value.trim();
+  const pw    = document.getElementById("loginPassword").value;
+  const err   = document.getElementById("loginError");
+  const btn   = document.getElementById("loginBtn");
+  if (!email || !pw) { err.textContent = "Bitte E-Mail und Passwort eingeben."; err.style.display = "block"; return; }
+  btn.disabled = true; btn.textContent = "Anmelden…"; err.style.display = "none";
+  try { await signInWithEmailAndPassword(auth, email, pw); }
+  catch(e) {
+    btn.disabled = false; btn.textContent = "🔑 Anmelden";
+    const msgs = { "auth/invalid-credential": "E-Mail oder Passwort falsch.", "auth/too-many-requests": "Zu viele Versuche." };
+    err.textContent = msgs[e.code] || "Fehler beim Anmelden."; err.style.display = "block";
+  }
+};
+document.getElementById("loginPassword").addEventListener("keydown", e => { if(e.key==="Enter") document.getElementById("loginBtn").click(); });
+document.getElementById("logoutBtn").onclick = () => signOut(auth);
+
+onAuthStateChanged(auth, user => {
+  if (user) {
+    document.getElementById("loginScreen").style.display = "none";
+    document.getElementById("app").style.display = "flex";
+    syncRowsLocal();
+    startListeners();
+    setMode("einlagern");
+    toast("Willkommen, " + user.email.split("@")[0] + " 👋", "success");
+  } else {
+    document.getElementById("loginScreen").style.display = "flex";
+    document.getElementById("app").style.display = "none";
+  }
+});
+
+// ── Mode Routing ──────────────────────────────────────────────
+window.setMode = function(mode) {
+  currentMode = mode;
+  document.querySelectorAll(".mode-tab").forEach(t => t.classList.remove("active"));
+  document.getElementById("tab-" + mode).classList.add("active");
+  renderMode();
+};
+function renderMode() {
+  if      (currentMode === "einlagern") renderEinlagern();
+  else if (currentMode === "umlagern")  renderUmlagern();
+  else if (currentMode === "auslagern") renderAuslagern();
+  else if (currentMode === "info")      renderInfo();
+  else if (currentMode === "karte")     renderKarte();
+}
+
+// ═════════════════════════════════════════════════════════════
+// ① EINLAGERN
+// Ein Lagerplatz wird gescannt → Ordernummern werden eingetragen
+// ═════════════════════════════════════════════════════════════
+let el_slot = null, el_orders = "", el_name = "";
+
+function renderEinlagern() {
+  const existing = el_slot ? (lagerData[el_slot] || {}) : null;
+  document.getElementById("modeContent").innerHTML = `
+
+    <div class="card ${el_slot ? 'done' : ''}">
+      <div class="card-title"><span class="step-badge">1</span>Zielplatz scannen</div>
+      ${el_slot ? palettePreviewHTML(el_slot) : `<p style="font-size:13px;color:var(--ink3);margin-bottom:12px;">Noch kein Platz gescannt</p>`}
+      <button class="scan-btn" onclick="el_scanSlot()">📷 Platz-QR scannen</button>
+      <div class="manual-row">
+        <input class="manual-input" id="el_manSlot" placeholder="Platz-ID manuell (z.B. 0_2)" />
+        <button class="manual-confirm" onclick="el_setSlotManual()">OK</button>
+      </div>
+    </div>
+
+    <div class="card">
+      <div class="card-title"><span class="step-badge">2</span>Palette beschriften</div>
+      <div style="margin-bottom:8px;">
+        <div style="font-size:11px;letter-spacing:0.07em;text-transform:uppercase;color:var(--ink3);margin-bottom:5px;">Bezeichnung (optional)</div>
+        <input class="manual-input" id="el_name" placeholder="z.B. Palette 1" value="${el_name}" style="width:100%;" oninput="el_nameChange(this.value)" />
+      </div>
+      <div>
+        <div style="font-size:11px;letter-spacing:0.07em;text-transform:uppercase;color:var(--ink3);margin-bottom:5px;">Ordernummern (eine pro Zeile)</div>
+        <textarea id="el_orders" placeholder="50030512&#10;50030513&#10;50030514" style="width:100%;height:100px;padding:10px 12px;border:1px solid var(--border2);border-radius:var(--radius);font-size:13px;font-family:var(--font);resize:vertical;background:var(--surface);color:var(--ink);outline:none;" oninput="el_ordersChange(this.value)">${el_orders}</textarea>
+      </div>
+    </div>
+
+    <button class="action-btn confirm" onclick="el_confirm()" ${el_slot ? '' : 'disabled'}>✓ Einlagern bestätigen</button>
+    <button class="action-btn reset" onclick="el_reset()">↺ Zurücksetzen</button>
+  `;
+}
+
+window.el_scanSlot = () => startScan("📦 Lagerplatz-QR scannen", raw => {
+  const p = parseQR(raw); el_slot = p.value;
+  // Pre-fill from existing data if slot is already filled
+  const ex = lagerData[el_slot];
+  if (ex) { el_name = ex.name || ""; el_orders = (ex.orders||[]).join("\n"); }
+  toast("Platz: " + keyToLabel(el_slot), "success"); renderEinlagern();
+});
+window.el_setSlotManual = () => {
+  const v = document.getElementById("el_manSlot")?.value.trim();
+  if (!v) return;
+  el_slot = v;
+  const ex = lagerData[el_slot];
+  if (ex) { el_name = ex.name || ""; el_orders = (ex.orders||[]).join("\n"); }
+  renderEinlagern();
+};
+window.el_nameChange   = v => { el_name = v; };
+window.el_ordersChange = v => { el_orders = v; };
+
+window.el_confirm = async () => {
+  if (!el_slot) return;
+  const orders = el_orders.split(/[\n,;]+/).map(s => s.trim()).filter(Boolean);
+  const name   = el_name.trim();
+  const existing = lagerData[el_slot] || {};
+  if (!name && orders.length === 0) {
+    await saveSlot(el_slot, null);
+    toast("Platz geleert", "success");
+  } else {
+    await saveSlot(el_slot, { name, orders, note: existing.note || "", color: "#DFC07A" });
+    toast("✓ Palette auf " + keyToLabel(el_slot) + " eingelagert", "success");
+  }
+  el_slot = null; el_orders = ""; el_name = ""; renderEinlagern();
+};
+window.el_reset = () => { el_slot = null; el_orders = ""; el_name = ""; renderEinlagern(); };
+
+// ═════════════════════════════════════════════════════════════
+// ② UMLAGERN
+// Quellplatz → Zielplatz  (die gesamte Palette wird verschoben)
+// ═════════════════════════════════════════════════════════════
+let um_src = null, um_dst = null;
+
+function renderUmlagern() {
+  document.getElementById("modeContent").innerHTML = `
+
+    <div class="card ${um_src ? 'done' : ''}">
+      <div class="card-title"><span class="step-badge">1</span>Quellplatz scannen</div>
+      ${um_src
+        ? palettePreviewHTML(um_src)
+        : `<p style="font-size:13px;color:var(--ink3);margin-bottom:12px;">Noch kein Quellplatz gescannt</p>`}
+      <button class="scan-btn" onclick="um_scanSrc()">📷 Quellplatz-QR scannen</button>
+      <div class="manual-row">
+        <input class="manual-input" id="um_manSrc" placeholder="Platz-ID (z.B. 1_0)" />
+        <button class="manual-confirm" onclick="um_setSrcManual()">OK</button>
+      </div>
+    </div>
+
+    <div class="transfer-arrow">↓</div>
+
+    <div class="card ${um_dst ? 'done' : ''}">
+      <div class="card-title"><span class="step-badge">2</span>Zielplatz scannen</div>
+      ${um_dst
+        ? palettePreviewHTML(um_dst)
+        : `<p style="font-size:13px;color:var(--ink3);margin-bottom:12px;">Noch kein Zielplatz gescannt</p>`}
+      <button class="scan-btn" onclick="um_scanDst()">📷 Zielplatz-QR scannen</button>
+      <div class="manual-row">
+        <input class="manual-input" id="um_manDst" placeholder="Platz-ID (z.B. 2_3)" />
+        <button class="manual-confirm" onclick="um_setDstManual()">OK</button>
+      </div>
+    </div>
+
+    ${um_src && um_dst && lagerData[um_src] ? `
+      <div style="background:rgba(138,158,140,0.1);border:1px solid var(--sage);border-radius:var(--radius);padding:12px 14px;margin-bottom:4px;font-size:13px;color:var(--sage-dark);">
+        📦 Palette von <strong>${keyToLabel(um_src)}</strong> wird vollständig nach <strong>${keyToLabel(um_dst)}</strong> verschoben.
+      </div>` : ""}
+
+    <button class="action-btn confirm" onclick="um_confirm()" ${um_src && um_dst && lagerData[um_src] ? '' : 'disabled'}>🔄 Umlagern bestätigen</button>
+    <button class="action-btn reset" onclick="um_reset()">↺ Zurücksetzen</button>
+  `;
+}
+
+window.um_scanSrc = () => startScan("📦 Quellplatz-QR scannen", raw => {
+  const p = parseQR(raw); um_src = p.value; um_dst = null;
+  toast("Quellplatz: " + keyToLabel(um_src), "success"); renderUmlagern();
+});
+window.um_scanDst = () => startScan("🎯 Zielplatz-QR scannen", raw => {
+  const p = parseQR(raw); um_dst = p.value;
+  if (um_dst === um_src) { toast("Ziel = Quelle – bitte anderen Platz wählen", "error"); um_dst = null; renderUmlagern(); return; }
+  toast("Zielplatz: " + keyToLabel(um_dst), "success"); renderUmlagern();
+});
+window.um_setSrcManual = () => { const v = document.getElementById("um_manSrc")?.value.trim(); if(v){ um_src=v; um_dst=null; renderUmlagern(); } };
+window.um_setDstManual = () => { const v = document.getElementById("um_manDst")?.value.trim(); if(v){ um_dst=v; renderUmlagern(); } };
+
+window.um_confirm = async () => {
+  if (!um_src || !um_dst) return;
+  const srcData = lagerData[um_src];
+  if (!srcData) { toast("Quellplatz ist leer", "error"); return; }
+
+  // Apply destination row default color if active
+  const dstRi  = parseInt(um_dst.split("_")[0]);
+  const dstRow = rowConfig[dstRi];
+  const newColor = (dstRow && dstRow.useDefaultColor && dstRow.defaultColor)
+    ? dstRow.defaultColor
+    : srcData.color;
+
+  await saveSlot(um_dst, { ...srcData, color: newColor });
+  await saveSlot(um_src, null);
+  toast("✓ Palette → " + keyToLabel(um_dst), "success");
+  um_src = null; um_dst = null; renderUmlagern();
+};
+window.um_reset = () => { um_src = null; um_dst = null; renderUmlagern(); };
+
+// ═════════════════════════════════════════════════════════════
+// ③ AUSLAGERN
+// Palette vollständig vom Platz entfernen
+// ═════════════════════════════════════════════════════════════
+let aus_slot = null;
+
+function renderAuslagern() {
+  const hasData = aus_slot && lagerData[aus_slot] && (lagerData[aus_slot].name || (lagerData[aus_slot].orders||[]).length);
+  document.getElementById("modeContent").innerHTML = `
+
+    <div class="card ${aus_slot ? 'done' : ''}">
+      <div class="card-title"><span class="step-badge">1</span>Platz scannen</div>
+      ${aus_slot
+        ? palettePreviewHTML(aus_slot)
+        : `<p style="font-size:13px;color:var(--ink3);margin-bottom:12px;">Noch kein Platz gescannt</p>`}
+      <button class="scan-btn" onclick="aus_scanSlot()">📷 Platz-QR scannen</button>
+      <div class="manual-row">
+        <input class="manual-input" id="aus_manSlot" placeholder="Platz-ID (z.B. 0_3)" />
+        <button class="manual-confirm" onclick="aus_setSlotManual()">OK</button>
+      </div>
+    </div>
+
+    ${hasData ? `
+      <div style="background:#FDF0F0;border:1px solid rgba(139,58,58,0.25);border-radius:var(--radius);padding:12px 14px;margin-bottom:4px;font-size:13px;color:#7A3030;">
+        ⚠️ Die gesamte Palette auf <strong>${keyToLabel(aus_slot)}</strong> wird ausgelagert und der Platz geleert.
+      </div>` : ""}
+
+    <button class="action-btn danger" onclick="aus_confirm()" ${hasData ? '' : 'disabled'}>🚚 Auslagern bestätigen</button>
+    <button class="action-btn reset" onclick="aus_reset()">↺ Zurücksetzen</button>
+  `;
+}
+
+window.aus_scanSlot = () => startScan("📦 Platz-QR scannen", raw => {
+  const p = parseQR(raw); aus_slot = p.value;
+  toast("Platz: " + keyToLabel(aus_slot), "success"); renderAuslagern();
+});
+window.aus_setSlotManual = () => { const v = document.getElementById("aus_manSlot")?.value.trim(); if(v){ aus_slot=v; renderAuslagern(); } };
+
+window.aus_confirm = async () => {
+  if (!aus_slot) return;
+  await saveSlot(aus_slot, null);
+  toast("✓ " + keyToLabel(aus_slot) + " geleert", "success");
+  aus_slot = null; renderAuslagern();
+};
+// ═════════════════════════════════════════════════════════════
+// ④ INFO — Platz scannen, Inhalt anzeigen & Ordernummern bearbeiten
+// ═════════════════════════════════════════════════════════════
+let info_slot = null;
+let info_editingOrders = false;
+
+function renderInfo() {
+  const d = info_slot ? (lagerData[info_slot] || {}) : null;
+  const orders = d ? (d.orders || []) : [];
+
+  // Color from actual data
+  const slotBg = d && d.color ? `background:${d.color};` : "";
+
+  document.getElementById("modeContent").innerHTML = `
+    <div class="card ${info_slot ? 'done' : ''}">
+      <div class="card-title"><span class="step-badge">🔍</span>Platz scannen</div>
+      ${info_slot ? `
+        <div class="palette-preview" style="${slotBg}">
+          <div class="palette-preview-header">
+            <div>
+              <div class="palette-preview-place">${keyToLabel(info_slot)}</div>
+              <div class="palette-preview-sublabel">Lagerplatz</div>
+            </div>
+            <span class="status-pill ${orders.length || d.name ? 'occupied' : 'free'}">${orders.length || d.name ? 'Belegt' : 'Leer'}</span>
+          </div>
+          ${d.name ? `<div class="palette-name-row">📦 ${d.name}</div>` : ""}
+          ${orders.length ? `
+            <div style="font-size:10px;letter-spacing:0.07em;text-transform:uppercase;color:var(--ink3);margin-bottom:5px;">Ordernummern (${orders.length})</div>
+            <div class="order-list">${orders.map(o => `<span class="order-pill">${o}</span>`).join("")}</div>` : ""}
+          ${d.note ? `<div class="palette-note">📝 ${d.note}</div>` : ""}
+        </div>` 
+        : `<p style="font-size:13px;color:var(--ink3);margin-bottom:12px;">Platz scannen um Inhalt anzuzeigen</p>`}
+      <button class="scan-btn" onclick="info_scan()">📷 Platz-QR scannen</button>
+      <div class="manual-row">
+        <input class="manual-input" id="info_man" placeholder="Platz-ID manuell (z.B. 1_0)" />
+        <button class="manual-confirm" onclick="info_setManual()">OK</button>
+      </div>
+    </div>
+
+    ${info_slot ? `
+      <!-- Ordernummern bearbeiten -->
+      <div class="card">
+        <div class="card-title"><span class="step-badge">✏️</span>Ordernummern bearbeiten</div>
+        <div style="font-size:11px;letter-spacing:0.07em;text-transform:uppercase;color:var(--ink3);margin-bottom:5px;">Eine pro Zeile</div>
+        <textarea id="info_ordersTA" style="width:100%;height:110px;padding:10px 12px;border:1px solid var(--border2);border-radius:var(--radius);font-size:13px;font-family:var(--font);resize:vertical;background:var(--surface);color:var(--ink);outline:none;" placeholder="Ordernummern eingeben …">${orders.join("\n")}</textarea>
+        <button class="scan-btn" style="margin-top:8px;" onclick="info_saveOrders()">💾 Ordernummern speichern</button>
+      </div>
+
+      <!-- Schnellaktionen -->
+      <div style="display:flex;flex-direction:column;gap:8px;">
+        <button class="scan-btn" style="background:var(--clay);" onclick="um_src='${info_slot}';um_dst=null;setMode('umlagern');">
+          🔄 Diese Palette umlagern
+        </button>
+        <button class="scan-btn" style="background:#C0604A;" onclick="aus_slot='${info_slot}';setMode('auslagern');">
+          🚚 Diese Palette auslagern
+        </button>
+      </div>
+      <button class="action-btn reset" onclick="info_reset()">↺ Zurücksetzen</button>
+    ` : ""}
+  `;
+}
+
+window.info_scan = () => startScan("🔍 Platz-QR scannen", raw => {
+  const p = parseQR(raw); info_slot = p.value;
+  toast("Platz: " + keyToLabel(info_slot), "success"); renderInfo();
+});
+window.info_setManual = () => {
+  const v = document.getElementById("info_man")?.value.trim();
+  if (v) { info_slot = v; renderInfo(); }
+};
+// FIX: reset properly clears info_slot
+window.info_reset = () => { info_slot = null; renderInfo(); };
+
+window.info_saveOrders = async () => {
+  if (!info_slot) return;
+  const raw    = document.getElementById("info_ordersTA")?.value || "";
+  const orders = raw.split(/[\n,;]+/).map(s => s.trim()).filter(Boolean);
+  const d      = lagerData[info_slot] || {};
+  await saveSlot(info_slot, { name: d.name||"", orders, note: d.note||"", color: d.color||"" });
+  toast("✓ Ordernummern gespeichert", "success");
+};
+
+// ═════════════════════════════════════════════════════════════
+// ⑤ KARTE — Vogelperspektive + Suche
+// ═════════════════════════════════════════════════════════════
+let karte_search = "", karte_highlightKeys = [];
+
+function renderKarte() {
+  const c = document.getElementById("modeContent");
+
+  const q = karte_search.trim().toLowerCase();
+  karte_highlightKeys = [];
+  if (q.length >= 2) {
+    Object.entries(lagerData).forEach(([key, d]) => {
+      const name   = (d.name || "").toLowerCase();
+      const orders = (d.orders || []).map(o => o.toLowerCase());
+      const note   = (d.note  || "").toLowerCase();
+      if (name.includes(q) || orders.some(o => o.includes(q) || o.slice(-4).includes(q)) || note.includes(q)) {
+        karte_highlightKeys.push(key);
+      }
+    });
+  }
+
+  let resultsHTML = "";
+  if (q.length >= 2) {
+    if (karte_highlightKeys.length === 0) {
+      resultsHTML = `<div style="font-size:13px;color:var(--ink3);margin-bottom:1rem;padding:10px;background:var(--surface);border-radius:var(--radius);border:1px solid var(--border2);">Keine Treffer für „${karte_search}"</div>`;
+    } else {
+      resultsHTML = karte_highlightKeys.map(key => {
+        const d = lagerData[key] || {};
+        const orders = d.orders || [];
+        const matchingOrders = orders.filter(o => o.toLowerCase().includes(q) || o.toLowerCase().slice(-4).includes(q));
+        return `<div class="search-result-item" onclick="openSlotDetail('${key}')">
+          <div class="search-result-place">📍 ${keyToLabel(key)}</div>
+          ${d.name ? `<div class="search-result-match">📦 ${d.name}</div>` : ""}
+          ${matchingOrders.map(o => `<div class="search-result-match">🔖 ${o}</div>`).join("")}
+          ${orders.filter(o => !matchingOrders.includes(o)).length
+            ? `<div class="search-result-rest">+ ${orders.filter(o => !matchingOrders.includes(o)).join(", ")}</div>` : ""}
+        </div>`;
+      }).join("");
+    }
+  }
+
+  let gridHTML = "";
+  ROWS_LOCAL.forEach((row, ri) => {
+    const slotItems = [];
+    for (let s = 0; s < row.slots; s++) {
+      const key    = ri + "_" + s;
+      const d      = lagerData[key] || {};
+      const orders = d.orders || [];
+      const name   = d.name  || "";
+      const isEmpty = !name && orders.length === 0 && !d.color;
+      const isHL   = karte_highlightKeys.includes(key);
+      // FIX: use actual stored color, fall back to blue for empty
+      const bg     = d.color || (isEmpty ? "#B5D4F4" : "");
+      const prefix = row.name.replace(/^reihe\s*/i,"").trim().slice(0,3) || String.fromCharCode(65+ri);
+      slotItems.push(`
+        <div class="karte-slot ${isHL ? 'highlighted' : ''}"
+             style="${bg ? 'background:' + bg + ';' : ''}"
+             onclick="openSlotDetail('${key}')">
+          <div class="karte-slot-nr">${prefix}${s+1}</div>
+          ${name ? `<div class="karte-slot-name">${name}</div>` : ""}
+          ${orders.length
+            ? `<div class="karte-slot-orders">${orders.slice(0,3).join("\n")}${orders.length > 3 ? "\n+"+(orders.length-3) : ""}</div>`
+            : `<div class="karte-slot-empty">Leer</div>`}
+        </div>`);
+    }
+    gridHTML += `
+      <div class="karte-reihe">
+        <div class="karte-reihe-label">${row.name}</div>
+        <div class="karte-slots">${slotItems.join("")}</div>
+      </div>`;
+  });
+
+  c.innerHTML = `
+    <div class="search-box">
+      <input class="search-input" id="karteSearch" placeholder="Order suchen (auch letzte 4 Ziffern) …"
+             value="${karte_search}" oninput="karte_onInput(this.value)"
+             onkeydown="if(event.key==='Enter')karte_doSearch()" />
+      <button class="search-go" onclick="karte_doSearch()">🔍</button>
+    </div>
+    ${resultsHTML}
+    <div class="karte-wrap">${gridHTML}</div>
+  `;
+}
+
+window.karte_onInput  = v => { karte_search = v; if (v.length === 0) { karte_highlightKeys = []; renderKarte(); } };
+window.karte_doSearch = () => { karte_search = document.getElementById("karteSearch")?.value || ""; renderKarte(); };
+
+// ── Slot Detail Sheet ─────────────────────────────────────────
+window.openSlotDetail = (key) => {
+  const d      = lagerData[key] || {};
+  const orders = d.orders || [];
+  const label  = keyToLabel(key);
+  const isEmpty = !d.name && orders.length === 0 && !d.color;
+
+  document.getElementById("slotDetailContent").innerHTML = `
+    <div style="font-size:17px;font-weight:700;color:var(--ink);margin-bottom:2px;">${label}</div>
+    ${d.color ? `<div style="height:5px;background:${d.color};border-radius:3px;margin:8px 0 12px;"></div>` : `<div style="margin-bottom:12px;"></div>`}
+
+    ${isEmpty ? `
+      <div style="font-size:14px;color:var(--ink3);font-style:italic;padding:8px 0;">Keine Palette eingelagert</div>
+    ` : `
+      ${d.name ? `<div style="font-size:14px;font-weight:600;color:var(--ink);margin-bottom:8px;">📦 ${d.name}</div>` : ""}
+      ${orders.length ? `
+        <div style="font-size:10px;letter-spacing:0.07em;text-transform:uppercase;color:var(--ink3);margin-bottom:6px;">Ordernummern (${orders.length})</div>
+        <div style="display:flex;flex-wrap:wrap;gap:5px;margin-bottom:10px;">
+          ${orders.map(o => `<span style="font-size:12px;background:var(--creme2);border:1px solid var(--border2);border-radius:5px;padding:4px 10px;font-weight:500;">${o}</span>`).join("")}
+        </div>
+      ` : `<div style="font-size:13px;color:var(--ink3);margin-bottom:8px;">Keine Ordernummern eingetragen</div>`}
+      ${d.note ? `<div style="font-size:12px;color:var(--ink3);font-style:italic;margin-bottom:8px;">📝 ${d.note}</div>` : ""}
+
+      <!-- Ordernummern direkt im Sheet bearbeiten -->
+      <div style="margin-top:10px;padding-top:10px;border-top:1px solid var(--border);">
+        <div style="font-size:10px;letter-spacing:0.07em;text-transform:uppercase;color:var(--ink3);margin-bottom:5px;">Ordernummern bearbeiten</div>
+        <textarea id="sheetOrdersTA" style="width:100%;height:90px;padding:8px 10px;border:1px solid var(--border2);border-radius:var(--radius);font-size:13px;font-family:var(--font);resize:none;background:var(--surface);color:var(--ink);outline:none;">${orders.join("\n")}</textarea>
+        <button class="scan-btn" style="margin-top:7px;height:40px;font-size:13px;" onclick="sheetSaveOrders('${key}')">💾 Speichern</button>
+      </div>
+    `}
+  `;
+
+  document.getElementById("slotDetailActions").innerHTML = `
+    ${!isEmpty ? `
+      <button class="scan-btn" style="background:var(--clay);" onclick="closeSlotDetail();um_src='${key}';um_dst=null;setMode('umlagern');">🔄 Umlagern</button>
+      <button class="scan-btn" style="background:#C0604A;" onclick="closeSlotDetail();aus_slot='${key}';setMode('auslagern');">🚚 Auslagern</button>
+    ` : `
+      <button class="scan-btn" onclick="closeSlotDetail();el_slot='${key}';el_name='';el_orders='';setMode('einlagern');">📦 Einlagern</button>
+    `}
+    <button class="action-btn reset" style="margin-top:0;" onclick="closeSlotDetail()">Schließen</button>
+  `;
+
+  document.getElementById("slotDetailBg").classList.add("active");
+};
+
+window.sheetSaveOrders = async (key) => {
+  const raw    = document.getElementById("sheetOrdersTA")?.value || "";
+  const orders = raw.split(/[\n,;]+/).map(s => s.trim()).filter(Boolean);
+  const d      = lagerData[key] || {};
+  await saveSlot(key, { name: d.name||"", orders, note: d.note||"", color: d.color||"" });
+  toast("✓ Gespeichert", "success");
+  openSlotDetail(key);
+};
+
+window.closeSlotDetail = () => document.getElementById("slotDetailBg").classList.remove("active");
+document.getElementById("slotDetailBg").onclick = e => {
+  if (e.target === document.getElementById("slotDetailBg")) closeSlotDetail();
+};
+
+// Local ROWS reference (kept in sync with rowConfig)
+let ROWS_LOCAL = [];
+function syncRowsLocal() {
+  ROWS_LOCAL = rowConfig.length > 0 ? rowConfig : [
+    {name:"Reihe A",slots:6},{name:"Reihe B",slots:6},{name:"Reihe C",slots:6},
+    {name:"Reihe D",slots:6},{name:"Reihe E",slots:6},{name:"Reihe F",slots:6}
+  ];
+}
+</script>
+</body>
+</html>
