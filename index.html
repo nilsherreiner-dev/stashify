@@ -1,0 +1,4090 @@
+<!DOCTYPE html>
+<html lang="de">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+<title>Stashify – Lagerverwaltung</title>
+<link rel="icon" type="image/svg+xml" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 500 500'%3E%3Crect width='500' height='500' rx='80' fill='%23EDE8DF'/%3E%3Crect x='90' y='310' width='90' height='80' rx='10' fill='%238A9E8C'/%3E%3Crect x='205' y='310' width='90' height='80' rx='10' fill='%23A8BA9A'/%3E%3Crect x='320' y='310' width='90' height='80' rx='10' fill='%238A9E8C'/%3E%3Crect x='147' y='215' width='90' height='85' rx='10' fill='%23B8956A'/%3E%3Crect x='263' y='215' width='90' height='85' rx='10' fill='%23CEAD87'/%3E%3Crect x='200' y='120' width='100' height='84' rx='10' fill='%23C4B49A'/%3E%3Ccircle cx='390' cy='108' r='22' fill='%236B7D6D'/%3E%3Cpolyline points='390,121 390,97' fill='none' stroke='%23FAF8F4' stroke-width='3.5' stroke-linecap='round'/%3E%3Cpolyline points='382,106 390,97 398,106' fill='none' stroke='%23FAF8F4' stroke-width='3.5' stroke-linecap='round' stroke-linejoin='round'/%3E%3C/svg%3E" />
+<link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/@tabler/icons-webfont@3.10.0/dist/tabler-icons.min.css" />
+<link rel="preconnect" href="https://fonts.googleapis.com" />
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+<link href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:wght@300;400;500&family=Inter:wght@300;400;500&family=Space+Grotesk:wght@700&display=swap" rel="stylesheet" />
+<style>
+*, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+:root {
+  --creme:       #F5F1EA;
+  --creme2:      #EDE8DF;
+  --creme3:      #E3DDD4;
+  --sage:        #8A9E8C;
+  --sage-light:  #A8BA9A;
+  --sage-dark:   #6B7D6D;
+  --clay:        #B8956A;
+  --clay-light:  #CEAD87;
+  --clay-dark:   #8C6E4A;
+  --ink:         #2E2B26;
+  --ink2:        #6B6358;
+  --ink3:        #A09890;
+  --surface:     #FAF8F4;
+  --border:      rgba(138,158,140,0.20);
+  --border2:     rgba(138,158,140,0.35);
+  --radius:      6px;
+  --radius-lg:   10px;
+  --font-display: 'Cormorant Garamond', Georgia, serif;
+  --font-body:    'Inter', system-ui, sans-serif;
+}
+
+body {
+  font-family: var(--font-body);
+  background: var(--creme);
+  color: var(--ink);
+  min-height: 100vh;
+  font-size: 14px;
+  line-height: 1.6;
+}
+
+/* ── Header ── */
+header {
+  background: var(--surface);
+  border-bottom: 1px solid var(--border2);
+  padding: 0 2rem;
+  display: flex;
+  align-items: center;
+  height: 60px;
+  position: sticky;
+  top: 0;
+  z-index: 20;
+}
+
+.logo {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  text-decoration: none;
+}
+
+.logo-mark {
+  width: 32px;
+  height: 32px;
+  border: 1.5px solid var(--gold);
+  border-radius: 50%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  flex-shrink: 0;
+}
+
+.logo-mark svg { width: 16px; height: 16px; }
+
+.logo-text {
+  font-family: var(--font-display);
+  font-size: 22px;
+  font-weight: 400;
+  letter-spacing: 0.18em;
+  color: var(--ink);
+  text-transform: uppercase;
+}
+
+.logo-sub {
+  font-family: var(--font-body);
+  font-size: 10px;
+  letter-spacing: 0.12em;
+  color: var(--ink3);
+  text-transform: uppercase;
+  margin-left: 2px;
+  margin-top: -2px;
+}
+
+.header-divider {
+  width: 1px;
+  height: 28px;
+  background: var(--border2);
+  margin: 0 1.25rem;
+}
+
+.header-title {
+  font-family: var(--font-body);
+  font-size: 12px;
+  letter-spacing: 0.1em;
+  text-transform: uppercase;
+  color: var(--ink3);
+  font-weight: 400;
+}
+
+.status-badge {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  padding: 0 10px;
+  height: 34px;
+  border: 1px solid var(--border2);
+  border-radius: var(--radius);
+  background: var(--surface);
+}
+.status-dot {
+  width: 8px;
+  height: 8px;
+  border-radius: 50%;
+  background: #E57373;
+  transition: background 0.4s;
+  flex-shrink: 0;
+}
+
+.header-right {
+  margin-left: auto;
+  display: flex;
+  gap: 8px;
+  align-items: center;
+}
+
+.header-center {
+  position: absolute;
+  left: 50%;
+  transform: translateX(-50%);
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  pointer-events: none;
+}
+
+.stashify-logo {
+  font-family: 'Space Grotesk', 'Inter', sans-serif;
+  font-weight: 700;
+  font-size: 19px;
+  letter-spacing: 0.22em;
+  text-transform: uppercase;
+  color: var(--sage-dark);
+}
+
+/* ── Notizen collapsed ── */
+.notes-sidebar {
+  transition: width 0.25s ease;
+}
+.notes-sidebar.collapsed {
+  width: 20px;
+  overflow: visible;
+  border-right: none;
+  background: transparent;
+}
+.notes-sidebar.collapsed .notes-feed,
+.notes-sidebar.collapsed .notes-compose,
+.notes-sidebar.collapsed .notes-header {
+  display: none !important;
+}
+/* Clean vertical tab when collapsed */
+.notes-sidebar.collapsed .notes-tab {
+  display: flex !important;
+}
+.notes-tab {
+  display: none;
+  position: absolute;
+  left: 0;
+  top: 50%;
+  transform: translateY(-50%);
+  writing-mode: vertical-rl;
+  text-orientation: mixed;
+  background: var(--surface);
+  border: 1px solid var(--border2);
+  border-left: none;
+  border-radius: 0 6px 6px 0;
+  padding: 12px 6px;
+  cursor: pointer;
+  font-size: 10px;
+  letter-spacing: 0.1em;
+  text-transform: uppercase;
+  color: var(--ink3);
+  white-space: nowrap;
+  box-shadow: 2px 0 8px rgba(44,40,32,0.08);
+  user-select: none;
+  transition: background 0.12s, color 0.12s;
+  gap: 6px;
+  align-items: center;
+}
+.notes-tab:hover {
+  background: var(--creme2);
+  color: var(--sage-dark);
+}
+
+/* ── Main Layout ── */
+.app-layout {
+  display: flex;
+  align-items: flex-start;
+  gap: 0;
+  min-height: calc(100vh - 60px);
+}
+
+/* ── Notizen Sidebar ── */
+.notes-sidebar {
+  width: 280px;
+  flex-shrink: 0;
+  border-right: 1px solid var(--border2);
+  background: var(--surface);
+  display: flex;
+  flex-direction: column;
+  height: calc(100vh - 60px);
+  position: sticky;
+  top: 60px;
+  overflow: hidden;
+  transition: width 0.25s ease;
+}
+.notes-header {
+  padding: 14px 14px 10px;
+  border-bottom: 1px solid var(--border2);
+  flex-shrink: 0;
+}
+.notes-header-title {
+  font-size: 12px; letter-spacing: 0.08em; text-transform: uppercase;
+  color: var(--ink3); display: flex; align-items: center; gap: 6px;
+}
+.notes-feed {
+  flex: 1;
+  overflow-y: auto;
+  padding: 10px 10px 0;
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+.notes-feed::-webkit-scrollbar { width: 4px; }
+.notes-feed::-webkit-scrollbar-track { background: transparent; }
+.notes-feed::-webkit-scrollbar-thumb { background: var(--border2); border-radius: 2px; }
+
+.note-item {
+  display: flex;
+  gap: 8px;
+  align-items: flex-start;
+}
+.note-item.own { flex-direction: row-reverse; }
+
+.note-avatar {
+  width: 28px; height: 28px; border-radius: 50%;
+  background: var(--sage); color: white;
+  display: flex; align-items: center; justify-content: center;
+  font-size: 11px; font-weight: 600;
+  flex-shrink: 0; overflow: hidden; position: relative;
+}
+.note-avatar img {
+  width: 100%; height: 100%; object-fit: cover;
+  position: absolute; inset: 0;
+}
+.note-bubble {
+  max-width: 190px; min-width: 60px;
+}
+.note-meta {
+  font-size: 10px; color: var(--ink3); margin-bottom: 3px;
+  display: flex; align-items: center; gap: 4px;
+}
+.note-item.own .note-meta { flex-direction: row-reverse; }
+.note-name { font-weight: 600; color: var(--ink2); }
+.note-body {
+  background: var(--creme2);
+  border: 1px solid var(--border2);
+  border-radius: 12px 12px 12px 3px;
+  padding: 8px 11px;
+  font-size: 12px; line-height: 1.55; color: var(--ink);
+  word-break: break-word; white-space: pre-wrap;
+  position: relative;
+}
+.note-item.own .note-body {
+  background: var(--sage);
+  color: white;
+  border-color: var(--sage);
+  border-radius: 12px 12px 3px 12px;
+}
+.note-delete {
+  position: absolute; top: 4px; right: 5px;
+  background: none; border: none; cursor: pointer;
+  font-size: 10px; color: rgba(255,255,255,0.6);
+  padding: 0; line-height: 1; display: none;
+  height: auto;
+}
+.note-item.own .note-body:hover .note-delete { display: block; }
+.note-delete:hover { color: white; background: none; transform: none; box-shadow: none; border: none; }
+
+.notes-compose {
+  padding: 10px;
+  border-top: 1px solid var(--border2);
+  flex-shrink: 0;
+  background: var(--surface);
+}
+.notes-compose-row {
+  display: flex; gap: 6px; align-items: flex-end;
+}
+.notes-textarea {
+  flex: 1; min-height: 36px; max-height: 100px;
+  padding: 8px 10px; border: 1px solid var(--border2);
+  border-radius: var(--radius); font-size: 12px;
+  font-family: var(--font-body); color: var(--ink);
+  background: var(--creme2); resize: none; outline: none;
+  line-height: 1.4; overflow-y: auto;
+}
+.notes-textarea:focus { border-color: var(--sage); box-shadow: 0 0 0 2px rgba(138,158,140,0.15); }
+.notes-send {
+  width: 34px; height: 34px; background: var(--sage); color: white;
+  border: none; border-radius: var(--radius); cursor: pointer;
+  display: flex; align-items: center; justify-content: center;
+  flex-shrink: 0; font-size: 15px; padding: 0;
+  transition: background 0.12s;
+}
+.notes-send:hover { background: var(--sage-dark); transform: none; box-shadow: none; border: none; }
+.note-empty {
+  text-align: center; color: var(--ink3); font-size: 12px;
+  padding: 2rem 1rem; font-style: italic;
+}
+
+/* ── Main content area ── */
+main {
+  flex: 1;
+  min-width: 0;
+  padding: 1.75rem 2rem;
+}
+
+/* ── Buttons ── */
+button {
+  background: var(--surface);
+  border: 1px solid var(--border2);
+  border-radius: var(--radius);
+  color: var(--ink2);
+  font-size: 12px;
+  font-family: var(--font-body);
+  letter-spacing: 0.04em;
+  padding: 0 14px;
+  height: 34px;
+  cursor: pointer;
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  transition: all 0.15s;
+  white-space: nowrap;
+}
+
+button:hover { background: var(--creme2); border-color: var(--sage); color: var(--ink); }
+button:active { transform: scale(0.97); }
+
+button.primary {
+  background: var(--sage);
+  color: var(--surface);
+  border-color: var(--sage);
+  font-weight: 500;
+}
+button.primary:hover { background: var(--sage-dark); border-color: var(--sage-dark); }
+
+button.danger {
+  color: #8B3A3A;
+  border-color: rgba(139,58,58,0.3);
+}
+button.danger:hover { background: #FDF0F0; }
+
+/* ── Inputs ── */
+input[type="text"], input[type="search"], textarea, select {
+  background: var(--surface);
+  border: 1px solid var(--border2);
+  border-radius: var(--radius);
+  color: var(--ink);
+  font-size: 13px;
+  font-family: var(--font-body);
+  padding: 0 12px;
+  height: 34px;
+  outline: none;
+  transition: border-color 0.15s, box-shadow 0.15s;
+}
+
+input[type="text"]:focus, input[type="search"]:focus, textarea:focus {
+  border-color: var(--sage);
+  box-shadow: 0 0 0 3px rgba(138,158,140,0.15);
+}
+
+textarea {
+  height: auto;
+  padding: 8px 12px;
+  resize: vertical;
+  min-height: 72px;
+  width: 100%;
+  line-height: 1.5;
+}
+
+/* ── Toolbar ── */
+.toolbar {
+  display: flex;
+  gap: 8px;
+  align-items: center;
+  margin-bottom: 1.25rem;
+  flex-wrap: wrap;
+}
+
+.search-wrap {
+  display: flex;
+  gap: 8px;
+  flex: 1;
+  min-width: 220px;
+}
+.search-wrap input { flex: 1; }
+
+.sep {
+  width: 1px;
+  height: 22px;
+  background: var(--border2);
+  margin: 0 2px;
+}
+
+/* ── Legend ── */
+.legend {
+  display: flex;
+  gap: 8px;
+  align-items: center;
+  flex-wrap: wrap;
+  margin-bottom: 1.25rem;
+  font-size: 11px;
+  letter-spacing: 0.05em;
+  color: var(--ink3);
+  text-transform: uppercase;
+}
+
+.legend-item {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  cursor: pointer;
+  padding: 4px 10px;
+  border-radius: 999px;
+  border: 1px solid var(--border);
+  background: var(--surface);
+  transition: all 0.15s;
+  user-select: none;
+  font-size: 11px;
+  letter-spacing: 0.05em;
+  color: var(--ink2);
+}
+
+.legend-item:hover { border-color: var(--gold); background: var(--creme2); }
+.legend-item.active { border-color: var(--gold); background: var(--creme2); color: var(--ink); }
+
+.legend-dot {
+  width: 12px;
+  height: 12px;
+  border-radius: 3px;
+  flex-shrink: 0;
+}
+
+/* ── Search results ── */
+.search-result {
+  background: #F0F7F0;
+  border: 1px solid rgba(60,130,80,0.3);
+  border-radius: var(--radius);
+  padding: 10px 14px;
+  font-size: 13px;
+  color: #2D6040;
+  margin-bottom: 1rem;
+  display: flex;
+  align-items: flex-start;
+  gap: 8px;
+}
+
+.not-found {
+  background: #FDF0F0;
+  border: 1px solid rgba(139,58,58,0.25);
+  border-radius: var(--radius);
+  padding: 10px 14px;
+  font-size: 13px;
+  color: #7A3030;
+  margin-bottom: 1rem;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.multi-result {
+  background: #F0F7F0;
+  border: 1px solid rgba(60,130,80,0.3);
+  border-radius: var(--radius);
+  padding: 10px 14px;
+  font-size: 13px;
+  color: #2D6040;
+  margin-bottom: 1rem;
+}
+.multi-result ul { margin: 6px 0 0 18px; line-height: 1.9; }
+
+/* ── Grid ── */
+.grid-wrap { overflow-x: auto; padding-bottom: 1rem; }
+
+.lager-grid {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+  min-width: 560px;
+}
+
+.reihe-row {
+  display: flex;
+  align-items: stretch;
+  gap: 10px;
+}
+
+.reihe-name {
+  font-size: 11px;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  color: var(--ink3);
+  font-weight: 400;
+  min-width: 56px;
+  text-align: right;
+  display: flex;
+  align-items: center;
+  justify-content: flex-end;
+  flex-shrink: 0;
+  cursor: pointer;
+  position: relative;
+}
+
+.reihe-name:hover::after {
+  content: '✎';
+  font-size: 10px;
+  margin-left: 4px;
+  color: var(--sage);
+  text-transform: none;
+}
+
+.reihe-name-input {
+  font-size: 11px;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  font-family: var(--font-body);
+  color: var(--ink);
+  width: 56px;
+  text-align: right;
+  border: 1px solid var(--sage);
+  border-radius: var(--radius);
+  background: var(--surface);
+  padding: 2px 5px;
+  height: 24px;
+  outline: none;
+  box-shadow: 0 0 0 2px rgba(138,158,140,0.2);
+}
+
+.palette-slots { display: flex; gap: 8px; }
+
+.palette {
+  width: 94px;
+  min-height: 84px;
+  border-radius: var(--radius-lg);
+  border: 1px solid var(--border2);
+  background: var(--surface);
+  cursor: pointer;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 3px;
+  transition: transform 0.12s, border-color 0.15s, box-shadow 0.15s;
+  position: relative;
+  padding: 20px 6px 8px;
+  user-select: none;
+}
+
+.palette:hover {
+  transform: translateY(-2px);
+  border-color: var(--sage);
+  box-shadow: 0 4px 16px rgba(138,158,140,0.22);
+}
+
+.palette.highlighted {
+  border-color: var(--sage);
+  box-shadow: 0 0 0 3px rgba(138,158,140,0.35);
+  transform: translateY(-2px);
+  z-index: 2;
+}
+
+.palette-nr {
+  font-size: 9px;
+  letter-spacing: 0.06em;
+  color: var(--ink3);
+  position: absolute;
+  top: 6px;
+  left: 8px;
+  font-weight: 400;
+  text-transform: uppercase;
+}
+
+.order-tag {
+  font-size: 10px;
+  font-weight: 500;
+  color: var(--ink);
+  background: rgba(237,232,223,0.85);
+  border-radius: 3px;
+  padding: 1px 5px;
+  text-align: center;
+  word-break: break-all;
+  line-height: 1.5;
+  max-width: 82px;
+  border: 1px solid rgba(138,158,140,0.2);
+}
+
+.name-tag {
+  font-size: 10px;
+  font-weight: 400;
+  font-style: italic;
+  color: var(--ink2);
+  background: rgba(237,232,223,0.75);
+  border-radius: 3px;
+  padding: 1px 5px;
+  text-align: center;
+  word-break: break-all;
+  line-height: 1.5;
+  max-width: 82px;
+  border: 1px solid rgba(138,158,140,0.15);
+}
+
+.order-tag.match, .name-tag.match {
+  background: var(--sage);
+  color: var(--surface);
+  border-color: var(--sage-dark);
+}
+
+.palette-note {
+  font-size: 9px;
+  color: var(--ink3);
+  text-align: center;
+  margin-top: 1px;
+  max-width: 82px;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+  letter-spacing: 0.03em;
+}
+
+.palette-empty {
+  font-size: 11px;
+  color: var(--ink3);
+  letter-spacing: 0.04em;
+}
+
+.plus-icon {
+  font-size: 18px;
+  color: var(--creme3);
+  margin-bottom: 2px;
+}
+
+/* ── Modal ── */
+.modal-bg {
+  position: fixed;
+  inset: 0;
+  background: rgba(44,40,32,0.45);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  z-index: 100;
+}
+
+.modal {
+  background: var(--surface);
+  border-radius: var(--radius-lg);
+  border: 1px solid var(--border2);
+  padding: 1.75rem;
+  width: 350px;
+  max-width: 95vw;
+  box-shadow: 0 12px 48px rgba(44,40,32,0.2);
+}
+
+.modal-header {
+  display: flex;
+  align-items: baseline;
+  gap: 8px;
+  margin-bottom: 1.25rem;
+  padding-bottom: 1rem;
+  border-bottom: 1px solid var(--border);
+}
+
+.modal-header h3 {
+  font-family: var(--font-display);
+  font-size: 20px;
+  font-weight: 400;
+  letter-spacing: 0.04em;
+  color: var(--ink);
+}
+
+.modal-header span {
+  font-size: 11px;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  color: var(--sage);
+}
+
+.modal label {
+  font-size: 11px;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  color: var(--ink3);
+  display: block;
+  margin-bottom: 5px;
+  margin-top: 14px;
+}
+
+.modal label:first-of-type { margin-top: 0; }
+
+.hint {
+  font-size: 11px;
+  color: var(--ink3);
+  margin-top: 4px;
+  font-style: italic;
+}
+
+.modal-divider {
+  border: none;
+  border-top: 1px solid var(--border);
+  margin: 14px 0 0;
+}
+
+.color-picker {
+  display: flex;
+  gap: 8px;
+  flex-wrap: wrap;
+  margin-top: 8px;
+}
+
+.color-opt {
+  width: 26px;
+  height: 26px;
+  border-radius: 5px;
+  cursor: pointer;
+  border: 2px solid transparent;
+  transition: border-color 0.15s, transform 0.12s;
+  flex-shrink: 0;
+}
+
+.color-opt:hover { transform: scale(1.15); }
+.color-opt.selected { border-color: var(--ink) !important; }
+
+.modal-actions {
+  display: flex;
+  gap: 8px;
+  margin-top: 1.5rem;
+  padding-top: 1rem;
+  border-top: 1px solid var(--border);
+}
+
+.modal-actions button { flex: 1; justify-content: center; }
+
+/* ── Login Screen ── */
+#loginScreen {
+  position: fixed;
+  inset: 0;
+  background: var(--creme);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  z-index: 999;
+}
+
+.login-box {
+  background: var(--surface);
+  border: 1px solid var(--border2);
+  border-radius: var(--radius-lg);
+  padding: 2.5rem 2rem;
+  width: 340px;
+  max-width: 95vw;
+  box-shadow: 0 12px 48px rgba(44,40,32,0.12);
+}
+
+.login-logo {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 10px;
+  margin-bottom: 2rem;
+}
+
+.login-wordmark {
+  font-family: 'Space Grotesk', sans-serif;
+  font-weight: 700;
+  font-size: 22px;
+  letter-spacing: 0.22em;
+  color: var(--sage-dark);
+}
+
+.login-box h2 {
+  font-family: var(--font-display);
+  font-size: 20px;
+  font-weight: 400;
+  color: var(--ink);
+  margin-bottom: 0.25rem;
+  text-align: center;
+}
+
+.login-sub {
+  font-size: 12px;
+  color: var(--ink3);
+  text-align: center;
+  margin-bottom: 1.75rem;
+  letter-spacing: 0.04em;
+}
+
+.login-field {
+  margin-bottom: 1rem;
+}
+
+.login-field label {
+  font-size: 11px;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  color: var(--ink3);
+  display: block;
+  margin-bottom: 5px;
+}
+
+.login-field input {
+  width: 100%;
+  height: 38px;
+  padding: 0 12px;
+  background: var(--surface);
+  border: 1px solid var(--border2);
+  border-radius: var(--radius);
+  font-size: 14px;
+  font-family: var(--font-body);
+  color: var(--ink);
+  outline: none;
+  transition: border-color 0.15s, box-shadow 0.15s;
+}
+
+.login-field input:focus {
+  border-color: var(--sage);
+  box-shadow: 0 0 0 3px rgba(138,158,140,0.15);
+}
+
+.login-btn {
+  width: 100%;
+  height: 40px;
+  background: var(--sage);
+  color: var(--surface);
+  border: none;
+  border-radius: var(--radius);
+  font-size: 13px;
+  font-family: var(--font-body);
+  font-weight: 500;
+  letter-spacing: 0.06em;
+  cursor: pointer;
+  margin-top: 0.5rem;
+  transition: background 0.15s;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+}
+.login-btn:hover { background: var(--sage-dark); }
+.login-btn:disabled { opacity: 0.6; cursor: not-allowed; }
+
+.login-error {
+  background: #FDF0F0;
+  border: 1px solid rgba(139,58,58,0.25);
+  border-radius: var(--radius);
+  padding: 8px 12px;
+  font-size: 12px;
+  color: #7A3030;
+  margin-top: 0.75rem;
+  display: none;
+}
+
+.user-badge {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  font-size: 11px;
+  color: var(--ink3);
+  letter-spacing: 0.04em;
+  max-width: 160px;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.logout-btn {
+  background: none;
+  border: 1px solid var(--border2);
+  border-radius: var(--radius);
+  color: var(--ink3);
+  font-size: 11px;
+  height: 28px;
+  padding: 0 10px;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  gap: 4px;
+  transition: all 0.15s;
+  white-space: nowrap;
+}
+.logout-btn:hover { border-color: var(--sage); color: var(--ink); background: var(--creme2); }
+
+/* ── Legend label inline edit ── */
+.legend-label {
+  cursor: pointer;
+  border-radius: 3px;
+  padding: 0 2px;
+  transition: background 0.1s;
+}
+.legend-label:hover { background: var(--creme3); }
+
+.legend-del {
+  width: 14px; height: 14px; border-radius: 50%;
+  background: none; border: 1px solid var(--border2);
+  color: var(--ink3); font-size: 9px; cursor: pointer;
+  display: none; align-items: center; justify-content: center;
+  padding: 0; line-height: 1; margin-left: 2px; flex-shrink: 0;
+  transition: all 0.12s;
+}
+.legend-item:hover .legend-del { display: flex; }
+.legend-del:hover { background: #FDF0F0; border-color: rgba(139,58,58,0.4); color: #8B3A3A; transform: none; box-shadow: none; }
+
+.legend-add-btn {
+  height: 26px; padding: 0 10px;
+  background: none; border: 1px dashed var(--border2);
+  border-radius: var(--radius); color: var(--ink3);
+  font-size: 11px; cursor: pointer; white-space: nowrap;
+  display: flex; align-items: center; gap: 4px;
+  transition: all 0.12s; flex-shrink: 0;
+}
+.legend-add-btn:hover { border-color: var(--sage); color: var(--sage); background: rgba(138,158,140,0.06); transform: none; box-shadow: none; }
+
+/* ── Color Manager Modal ── */
+#colorMgrBg {
+  display: none; position: fixed; inset: 0;
+  background: rgba(44,40,32,0.5); z-index: 150;
+  align-items: center; justify-content: center;
+}
+#colorMgrBg.active { display: flex; }
+.color-mgr-box {
+  background: var(--surface); border: 1px solid var(--border2);
+  border-radius: var(--radius-lg); padding: 1.75rem;
+  width: 380px; max-width: 95vw;
+  box-shadow: 0 12px 48px rgba(44,40,32,0.2);
+}
+.color-mgr-title {
+  font-family: var(--font-display); font-size: 19px; font-weight: 400;
+  margin-bottom: 1.25rem; padding-bottom: 0.75rem;
+  border-bottom: 1px solid var(--border);
+  display: flex; align-items: center; justify-content: space-between;
+}
+.color-mgr-row {
+  display: flex; align-items: center; gap: 10px;
+  padding: 8px 0; border-bottom: 1px solid var(--border);
+}
+.color-mgr-swatch {
+  width: 28px; height: 28px; border-radius: 6px;
+  border: 1px solid var(--border2); flex-shrink: 0; cursor: pointer;
+  position: relative;
+}
+.color-mgr-name-input {
+  flex: 1; height: 32px; padding: 0 10px;
+  border: 1px solid var(--border2); border-radius: var(--radius);
+  background: var(--creme2); font-size: 13px; color: var(--ink);
+  outline: none; font-family: var(--font-body);
+}
+.color-mgr-name-input:focus { border-color: var(--sage); background: var(--surface); }
+.color-mgr-del-btn {
+  width: 28px; height: 28px; border-radius: 50%;
+  background: none; border: 1px solid var(--border2);
+  color: var(--ink3); font-size: 13px; cursor: pointer;
+  display: flex; align-items: center; justify-content: center;
+  padding: 0; flex-shrink: 0; transition: all 0.12s;
+}
+.color-mgr-del-btn:hover { background: #FDF0F0; border-color: rgba(139,58,58,0.4); color: #8B3A3A; transform: none; box-shadow: none; }
+.color-mgr-add-row {
+  display: flex; gap: 8px; margin-top: 1rem; align-items: center;
+}
+.color-hex-input {
+  width: 100px; height: 34px; padding: 0 10px;
+  border: 1px solid var(--border2); border-radius: var(--radius);
+  font-size: 13px; color: var(--ink); outline: none;
+  font-family: var(--font-body); background: var(--surface);
+}
+.color-hex-input:focus { border-color: var(--sage); }
+.color-native-input {
+  width: 34px; height: 34px; border: 1px solid var(--border2);
+  border-radius: var(--radius); padding: 2px; cursor: pointer;
+  background: var(--surface);
+}
+.color-mgr-add-name {
+  flex: 1; height: 34px; padding: 0 10px;
+  border: 1px solid var(--border2); border-radius: var(--radius);
+  font-size: 13px; color: var(--ink); outline: none;
+  font-family: var(--font-body); background: var(--surface);
+}
+.color-mgr-add-name:focus { border-color: var(--sage); }
+.color-mgr-add-btn {
+  height: 34px; padding: 0 14px; background: var(--sage); color: white;
+  border: none; border-radius: var(--radius); font-size: 13px;
+  cursor: pointer; font-family: var(--font-body); white-space: nowrap;
+}
+.color-mgr-close {
+  height: 36px; width: 100%; background: var(--surface);
+  border: 1px solid var(--border2); border-radius: var(--radius);
+  font-size: 13px; cursor: pointer; margin-top: 1rem;
+  font-family: var(--font-body); color: var(--ink2);
+}
+.row-default-color {
+  display: flex;
+  align-items: center;
+  gap: 5px;
+  margin-left: 6px;
+  flex-shrink: 0;
+  opacity: 0;
+  transition: opacity 0.15s;
+}
+.reihe-row:hover .row-default-color { opacity: 1; }
+
+.row-color-toggle {
+  width: 18px; height: 18px;
+  border-radius: 50%;
+  border: 2px solid var(--border2);
+  background: var(--surface);
+  cursor: pointer;
+  flex-shrink: 0;
+  position: relative;
+  transition: border-color 0.15s;
+}
+.row-color-toggle.active { border-color: var(--sage); }
+.row-color-toggle.active::after {
+  content: '';
+  position: absolute;
+  inset: 3px;
+  border-radius: 50%;
+  background: var(--sage);
+}
+
+.row-color-swatch {
+  width: 18px; height: 18px;
+  border-radius: 4px;
+  border: 1px solid var(--border2);
+  cursor: pointer;
+  flex-shrink: 0;
+}
+
+/* ── Row color picker popup ── */
+.row-color-popup {
+  position: absolute;
+  top: calc(100% + 6px);
+  left: 60px;
+  background: var(--surface);
+  border: 1px solid var(--border2);
+  border-radius: var(--radius);
+  padding: 8px;
+  display: flex;
+  gap: 6px;
+  z-index: 50;
+  box-shadow: 0 4px 20px rgba(44,40,32,0.15);
+  flex-wrap: wrap;
+  width: 160px;
+}
+.row-color-popup-swatch {
+  width: 28px; height: 28px;
+  border-radius: 5px;
+  border: 2px solid transparent;
+  cursor: pointer;
+  transition: transform 0.1s;
+  flex-shrink: 0;
+}
+.row-color-popup-swatch:hover { transform: scale(1.15); }
+.row-color-popup-swatch.selected { border-color: var(--ink); }
+.palette.dragging {
+  opacity: 0.4;
+  transform: scale(0.96);
+  cursor: grabbing;
+}
+.palette.drag-over {
+  border-color: var(--sage);
+  box-shadow: 0 0 0 3px rgba(138,158,140,0.45);
+  transform: translateY(-3px);
+  background: rgba(168,186,154,0.15);
+}
+.palette[draggable="true"] { cursor: grab; }
+
+/* ── Add/Remove controls ── */
+.reihe-row { position: relative; }
+
+.row-controls {
+  display: flex;
+  align-items: center;
+  gap: 4px;
+  margin-left: 4px;
+  flex-shrink: 0;
+  opacity: 0;
+  transition: opacity 0.15s;
+}
+.reihe-row:hover .row-controls { opacity: 1; }
+
+.ctrl-btn {
+  width: 22px;
+  height: 22px;
+  border-radius: 50%;
+  border: 1px solid var(--border2);
+  background: var(--surface);
+  color: var(--ink3);
+  font-size: 14px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  cursor: pointer;
+  padding: 0;
+  line-height: 1;
+  transition: all 0.15s;
+  flex-shrink: 0;
+}
+.ctrl-btn:hover { background: var(--creme2); border-color: var(--sage); color: var(--ink); transform: none; }
+.ctrl-btn.danger-sm:hover { background: #FDF0F0; border-color: rgba(139,58,58,0.4); color: #8B3A3A; }
+
+.slot-add-btn {
+  width: 94px;
+  min-height: 84px;
+  border-radius: var(--radius-lg);
+  border: 1px dashed var(--border2);
+  background: transparent;
+  color: var(--ink3);
+  font-size: 20px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  cursor: pointer;
+  padding: 0;
+  transition: all 0.15s;
+  flex-shrink: 0;
+}
+.slot-add-btn:hover { border-color: var(--sage); color: var(--sage); background: rgba(138,158,140,0.07); transform: none; box-shadow: none; }
+
+.add-row-bar {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  margin-top: 6px;
+  padding-left: 66px;
+}
+.add-row-btn {
+  height: 32px;
+  padding: 0 14px;
+  border: 1px dashed var(--border2);
+  border-radius: var(--radius);
+  background: transparent;
+  color: var(--ink3);
+  font-size: 12px;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  transition: all 0.15s;
+}
+.add-row-btn:hover { border-color: var(--sage); color: var(--sage); background: rgba(138,158,140,0.07); transform: none; box-shadow: none; }
+
+/* ── Legend editable label ── */
+.legend-item .legend-label { cursor: pointer; border-radius: 3px; padding: 0 2px; transition: background 0.12s; }
+.legend-item .legend-label:hover { background: var(--creme3); }
+.legend-label-input { font-size: 11px; font-family: var(--font-body); color: var(--ink); border: 1px solid var(--sage); border-radius: 4px; padding: 1px 5px; width: 76px; outline: none; background: var(--surface); box-shadow: 0 0 0 2px rgba(138,158,140,0.15); }
+.legend-manage-btn { height: 24px; padding: 0 10px; border: 1px dashed var(--border2); border-radius: 99px; background: transparent; color: var(--ink3); font-size: 11px; cursor: pointer; display: flex; align-items: center; gap: 4px; white-space: nowrap; transition: all 0.12s; margin-left: 4px; }
+.legend-manage-btn:hover { border-color: var(--sage); color: var(--sage); background: rgba(138,158,140,0.07); transform: none; box-shadow: none; }
+
+/* ── Color Manager Modal ── */
+#colorMgrBg { display: none; position: fixed; inset: 0; background: rgba(44,40,32,0.5); z-index: 200; align-items: center; justify-content: center; }
+#colorMgrBg.open { display: flex; }
+.color-mgr-modal { background: var(--surface); border: 1px solid var(--border2); border-radius: var(--radius-lg); padding: 1.75rem; width: 400px; max-width: 95vw; max-height: 88vh; overflow-y: auto; box-shadow: 0 12px 48px rgba(44,40,32,0.18); }
+.color-mgr-row { display: flex; align-items: center; gap: 10px; padding: 8px 0; border-bottom: 1px solid var(--border); }
+.color-mgr-swatch { width: 28px; height: 28px; border-radius: 6px; border: 1px solid var(--border2); flex-shrink: 0; cursor: pointer; position: relative; overflow: hidden; }
+.color-mgr-native { position: absolute; inset: 0; opacity: 0; cursor: pointer; width: 100%; height: 100%; border: none; padding: 0; }
+.color-mgr-name-input { flex: 1; height: 30px; padding: 0 8px; border: 1px solid var(--border2); border-radius: var(--radius); font-size: 13px; font-family: var(--font-body); color: var(--ink); background: var(--surface); outline: none; }
+.color-mgr-name-input:focus { border-color: var(--sage); }
+.color-mgr-delete { width: 28px; height: 28px; border-radius: 6px; border: 1px solid var(--border2); background: var(--surface); color: var(--ink3); font-size: 14px; cursor: pointer; display: flex; align-items: center; justify-content: center; flex-shrink: 0; transition: all 0.12s; }
+.color-mgr-delete:hover { background: #FDF0F0; border-color: rgba(139,58,58,0.4); color: #8B3A3A; transform: none; box-shadow: none; }
+.color-mgr-add-row { display: flex; align-items: center; gap: 10px; padding-top: 12px; }
+.color-mgr-new-swatch { width: 28px; height: 28px; border-radius: 6px; border: 2px dashed var(--border2); flex-shrink: 0; cursor: pointer; position: relative; overflow: hidden; }
+.color-mgr-new-input { flex: 1; height: 30px; padding: 0 8px; border: 1px solid var(--border2); border-radius: var(--radius); font-size: 13px; font-family: var(--font-body); color: var(--ink); background: var(--surface); outline: none; }
+.color-mgr-new-input:focus { border-color: var(--sage); }
+.color-mgr-new-add { height: 30px; padding: 0 12px; background: var(--sage); color: white; border: none; border-radius: var(--radius); font-size: 12px; cursor: pointer; font-family: var(--font-body); white-space: nowrap; }
+
+.toast {
+  position: fixed;
+  bottom: 1.5rem;
+  left: 50%;
+  transform: translateX(-50%);
+  background: var(--ink);
+  color: var(--creme);
+  padding: 9px 20px;
+  border-radius: 999px;
+  font-size: 12px;
+  letter-spacing: 0.05em;
+  z-index: 200;
+  pointer-events: none;
+  opacity: 0;
+  transition: opacity 0.2s;
+}
+.toast.show { opacity: 1; }
+
+/* ── Section label ── */
+.section-label {
+  font-size: 10px;
+  letter-spacing: 0.12em;
+  text-transform: uppercase;
+  color: var(--ink3);
+  margin-bottom: 0.75rem;
+  display: flex;
+  align-items: center;
+  gap: 10px;
+}
+.section-label::after {
+  content: '';
+  flex: 1;
+  height: 1px;
+  background: var(--border2);
+}
+</style>
+</head>
+<body>
+
+<header>
+  <div class="logo">
+    <div>
+      <div class="logo-text">Luamaya</div>
+      <div class="logo-sub">Big B2B Verwaltung</div>
+    </div>
+  </div>
+  <div class="header-divider"></div>
+  <div class="header-title">Lagerübersicht</div>
+  <div class="header-center">
+    <svg width="36" height="36" viewBox="0 0 500 500" xmlns="http://www.w3.org/2000/svg" style="flex-shrink:0;">
+      <rect width="500" height="500" rx="80" fill="#EDE8DF"/>
+      <rect x="90"  y="310" width="90" height="80" rx="10" fill="#8A9E8C"/>
+      <rect x="205" y="310" width="90" height="80" rx="10" fill="#A8BA9A"/>
+      <rect x="320" y="310" width="90" height="80" rx="10" fill="#8A9E8C"/>
+      <rect x="90"  y="328" width="90" height="10" fill="#FAF8F4" opacity="0.35"/>
+      <rect x="205" y="328" width="90" height="10" fill="#FAF8F4" opacity="0.35"/>
+      <rect x="320" y="328" width="90" height="10" fill="#FAF8F4" opacity="0.35"/>
+      <rect x="147" y="215" width="90" height="85" rx="10" fill="#B8956A"/>
+      <rect x="263" y="215" width="90" height="85" rx="10" fill="#CEAD87"/>
+      <rect x="147" y="233" width="90" height="10" fill="#FAF8F4" opacity="0.35"/>
+      <rect x="263" y="233" width="90" height="10" fill="#FAF8F4" opacity="0.35"/>
+      <rect x="200" y="120" width="100" height="84" rx="10" fill="#C4B49A"/>
+      <rect x="200" y="138" width="100" height="10" fill="#FAF8F4" opacity="0.4"/>
+      <circle cx="390" cy="108" r="22" fill="#6B7D6D"/>
+      <polyline points="390,121 390,97" fill="none" stroke="#FAF8F4" stroke-width="3.5" stroke-linecap="round"/>
+      <polyline points="382,106 390,97 398,106" fill="none" stroke="#FAF8F4" stroke-width="3.5" stroke-linecap="round" stroke-linejoin="round"/>
+      <circle cx="112" cy="175" r="7" fill="#8A9E8C" opacity="0.6"/>
+      <circle cx="392" cy="265" r="5" fill="#CEAD87" opacity="0.5"/>
+      <circle cx="130" cy="410" r="4" fill="#E3DDD4" opacity="0.7"/>
+    </svg>
+    <span class="stashify-logo">STASHIFY</span>
+  </div>
+  <div class="header-right">
+    <div class="status-badge">
+      <span class="status-dot" id="statusDot"></span>
+      <span id="statusTxt" style="font-size:11px;letter-spacing:0.05em;color:var(--ink3);">Verbinde …</span>
+    </div>
+    <button id="exportBtn"><i class="ti ti-download" aria-hidden="true"></i> Firebase-Export</button>
+    <button id="qrPrintBtn"><i class="ti ti-qrcode" aria-hidden="true"></i> QR-Codes</button>
+    <!-- Profil-Avatar -->
+    <div id="profileAvatarBtn" onclick="window.toggleProfilePopup()" title="Profil" style="display:none;cursor:pointer;flex-shrink:0;position:relative;">
+      <div id="profileAvatar" style="width:34px;height:34px;border-radius:50%;background:var(--sage);color:white;display:flex;align-items:center;justify-content:center;font-size:14px;font-weight:600;border:2px solid transparent;overflow:hidden;transition:border-color 0.15s;position:relative;">
+        <span id="profileInitial">?</span>
+        <img id="profileAvatarImg" style="display:none;width:100%;height:100%;object-fit:cover;position:absolute;inset:0;border-radius:50%;" />
+      </div>
+    </div>
+  </div>
+</header>
+
+<!-- ── Profil Popup ── -->
+<div id="profilePopup" style="display:none;position:fixed;top:64px;right:16px;background:var(--surface);border:1px solid var(--border2);border-radius:var(--radius-lg);width:260px;box-shadow:0 8px 32px rgba(44,40,32,0.18);z-index:100;overflow:hidden;">
+  <div style="padding:1.25rem;text-align:center;border-bottom:1px solid var(--border);">
+    <div style="position:relative;display:inline-block;margin-bottom:10px;">
+      <div id="profileAvatarLarge" onclick="document.getElementById('profileImgInput').click()" style="width:72px;height:72px;border-radius:50%;background:var(--sage);color:white;display:flex;align-items:center;justify-content:center;font-size:28px;font-weight:600;margin:0 auto;border:3px solid var(--border2);overflow:hidden;cursor:pointer;position:relative;" onmouseenter="this.querySelector('.av-ov').style.opacity='1'" onmouseleave="this.querySelector('.av-ov').style.opacity='0'">
+        <span id="profileInitialLarge">?</span>
+        <img id="profileAvatarImgLarge" style="display:none;width:100%;height:100%;object-fit:cover;position:absolute;inset:0;" />
+        <div class="av-ov" style="position:absolute;inset:0;background:rgba(0,0,0,0.38);display:flex;align-items:center;justify-content:center;opacity:0;transition:opacity 0.15s;border-radius:50%;"><i class="ti ti-camera" style="color:white;font-size:18px;"></i></div>
+      </div>
+      <input type="file" id="profileImgInput" accept="image/*" style="display:none">
+    </div>
+    <div id="profileEmailDisplay" style="font-size:13px;color:var(--ink2);margin-bottom:3px;word-break:break-all;font-weight:500;"></div>
+    <div style="font-size:11px;color:var(--ink3);">Big B2B Lagerverwaltung</div>
+  </div>
+  <div style="padding:10px;display:flex;flex-direction:column;gap:6px;">
+    <button onclick="document.getElementById('profileImgInput').click()" style="width:100%;height:34px;background:none;border:1px solid var(--border2);border-radius:var(--radius);cursor:pointer;font-size:12px;font-family:var(--font-body);color:var(--ink2);display:flex;align-items:center;justify-content:center;gap:6px;">
+      <i class="ti ti-photo" style="font-size:13px;"></i> Profilbild ändern
+    </button>
+    <button id="profileRemoveBtn" onclick="window.removeProfileImage()" style="display:none;width:100%;height:34px;background:none;border:1px solid var(--border2);border-radius:var(--radius);cursor:pointer;font-size:12px;font-family:var(--font-body);color:var(--ink3);display:none;align-items:center;justify-content:center;gap:6px;">
+      <i class="ti ti-photo-off" style="font-size:13px;"></i> Bild entfernen
+    </button>
+    <button id="logoutBtn" style="width:100%;height:34px;background:none;border:1px solid var(--border2);border-radius:var(--radius);cursor:pointer;font-size:12px;font-family:var(--font-body);color:var(--ink3);display:flex;align-items:center;justify-content:center;gap:6px;">
+      <i class="ti ti-logout" style="font-size:13px;"></i> Abmelden
+    </button>
+  </div>
+</div>
+
+<!-- ── QR Print Modal ── -->
+<div id="qrModalBg" style="display:none;position:fixed;inset:0;background:rgba(44,40,32,0.5);z-index:150;align-items:center;justify-content:center;">
+  <div style="background:var(--surface);border-radius:var(--radius-lg);border:1px solid var(--border2);padding:1.75rem;width:620px;max-width:95vw;max-height:90vh;overflow-y:auto;box-shadow:0 12px 48px rgba(44,40,32,0.2);">
+    <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:1rem;padding-bottom:1rem;border-bottom:1px solid var(--border);">
+      <h3 style="font-family:var(--font-display);font-size:20px;font-weight:400;">QR-Codes drucken</h3>
+      <button id="qrModalClose" style="background:none;border:none;font-size:20px;cursor:pointer;color:var(--ink3);padding:0 4px;">✕</button>
+    </div>
+    <!-- Tabs -->
+    <div style="display:flex;gap:6px;margin-bottom:1.25rem;">
+      <button id="qrTabSlots" onclick="qrSwitchTab('slots')" style="flex:1;height:34px;border-radius:var(--radius);border:1px solid var(--sage);background:var(--sage);color:white;cursor:pointer;font-size:12px;font-family:var(--font-body);letter-spacing:0.05em;">🗂 Regalplätze</button>
+      <button id="qrTabPalettes" onclick="qrSwitchTab('palettes')" style="flex:1;height:34px;border-radius:var(--radius);border:1px solid var(--border2);background:var(--surface);color:var(--ink2);cursor:pointer;font-size:12px;font-family:var(--font-body);letter-spacing:0.05em;">📦 Paletten</button>
+    </div>
+    <p id="qrDesc" style="font-size:12px;color:var(--ink3);margin-bottom:1.25rem;">Diese QR-Codes an den Regalplätzen anbringen. Der Scanner erkennt sie automatisch.</p>
+    <div id="qrGrid" style="display:grid;grid-template-columns:repeat(auto-fill,minmax(130px,1fr));gap:12px;"></div>
+    <button onclick="window.print()" style="margin-top:1.25rem;width:100%;height:40px;background:var(--sage);color:white;border:none;border-radius:var(--radius);cursor:pointer;font-size:13px;font-family:var(--font-body);">🖨 Seite drucken</button>
+  </div>
+</div>
+
+<!-- ── Color Manager Modal ── -->
+<div id="colorMgrBg">
+  <div class="color-mgr-modal">
+    <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:1.25rem;padding-bottom:0.75rem;border-bottom:1px solid var(--border);">
+      <span style="font-family:var(--font-display);font-size:19px;font-weight:400;">Farben verwalten</span>
+      <button id="colorMgrClose" style="background:none;border:none;font-size:20px;cursor:pointer;color:var(--ink3);padding:0 4px;">✕</button>
+    </div>
+    <div id="colorMgrList"></div>
+    <div class="color-mgr-add-row">
+      <div class="color-mgr-new-swatch" id="newColorSwatch" style="background:#C8E6C9;">
+        <input type="color" class="color-mgr-native" id="newColorPicker" value="#C8E6C9"
+               oninput="document.getElementById('newColorSwatch').style.background=this.value" />
+      </div>
+      <input class="color-mgr-new-input" id="newColorName" placeholder="Bezeichnung (z.B. Reserviert)" />
+      <button class="color-mgr-new-add" onclick="addColor()">+ Hinzufügen</button>
+    </div>
+  </div>
+</div>
+
+<!-- ── Paletten-Suche Modal ── -->
+<div id="multiSearchBg" style="display:none;position:fixed;inset:0;background:rgba(44,40,32,0.5);z-index:150;align-items:center;justify-content:center;">
+  <div style="background:var(--surface);border-radius:var(--radius-lg);border:1px solid var(--border2);padding:1.75rem;width:660px;max-width:96vw;max-height:92vh;overflow-y:auto;box-shadow:0 12px 48px rgba(44,40,32,0.2);">
+
+    <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:1.25rem;padding-bottom:1rem;border-bottom:1px solid var(--border);">
+      <div>
+        <div style="font-family:var(--font-display);font-size:20px;font-weight:400;color:var(--ink);">Paletten-Suche</div>
+        <div style="font-size:12px;color:var(--ink3);margin-top:2px;">Mehrere Ordernummern gleichzeitig suchen & drucken</div>
+      </div>
+      <button id="multiSearchClose" style="background:none;border:none;font-size:20px;cursor:pointer;color:var(--ink3);padding:0 4px;line-height:1;">✕</button>
+    </div>
+
+    <!-- ── KI Email-Upload ── -->
+    <div style="margin-bottom:1.25rem;padding:1rem;background:rgba(138,158,140,0.07);border:1px solid var(--border2);border-radius:var(--radius);">
+      <div style="font-size:11px;letter-spacing:0.08em;text-transform:uppercase;color:var(--sage-dark);margin-bottom:8px;display:flex;align-items:center;justify-content:space-between;">
+        <span><i class="ti ti-sparkles"></i> Auftragsmail hochladen</span>
+        <button onclick="window.openGeminiKeySetup()" style="background:none;border:1px solid var(--border2);border-radius:var(--radius);padding:2px 8px;font-size:10px;cursor:pointer;color:var(--ink3);font-family:var(--font-body);">⚙ API-Key</button>
+      </div>
+
+      <!-- Upload Dropzone -->
+      <div id="emailDropzone" style="
+        border: 2px dashed var(--border2); border-radius: var(--radius);
+        padding: 1.25rem; text-align: center; cursor: pointer;
+        transition: all 0.15s; background: var(--surface); position: relative;
+      " onclick="document.getElementById('emailFileInput').click()"
+         ondragover="event.preventDefault();this.style.borderColor='var(--sage)';this.style.background='rgba(138,158,140,0.08)'"
+         ondragleave="this.style.borderColor='';this.style.background='var(--surface)'"
+         ondrop="event.preventDefault();this.style.borderColor='';this.style.background='var(--surface)';window.handleEmailDrop(event)">
+        <div id="emailDropzoneContent">
+          <i class="ti ti-photo-up" style="font-size:28px;color:var(--ink3);display:block;margin-bottom:6px;"></i>
+          <div style="font-size:13px;color:var(--ink2);font-weight:500;">Screenshot hier ablegen oder klicken</div>
+          <div style="font-size:11px;color:var(--ink3);margin-top:3px;">PNG, JPG oder Screenshot aus der Zwischenablage (Strg+V)</div>
+        </div>
+        <input type="file" id="emailFileInput" accept="image/*" style="display:none">
+      </div>
+
+      <!-- Preview + Status -->
+      <div id="emailPreviewWrap" style="display:none;margin-top:10px;">
+        <div style="display:flex;align-items:center;gap:10px;">
+          <img id="emailPreviewImg" style="height:60px;border-radius:6px;border:1px solid var(--border2);object-fit:cover;" />
+          <div style="flex:1;">
+            <div id="emailExtractStatus" style="font-size:13px;color:var(--ink2);">Bereit zum Analysieren</div>
+            <div id="emailExtractSub" style="font-size:11px;color:var(--ink3);margin-top:2px;"></div>
+          </div>
+          <button id="emailExtractBtn" onclick="window.extractFromEmail()" style="height:34px;padding:0 14px;background:var(--sage);color:white;border:none;border-radius:var(--radius);font-size:12px;cursor:pointer;font-family:var(--font-body);white-space:nowrap;display:flex;align-items:center;gap:5px;">
+            <i class="ti ti-sparkles"></i> Analysieren
+          </button>
+          <button onclick="window.clearEmailUpload()" style="height:34px;width:34px;background:none;border:1px solid var(--border2);border-radius:var(--radius);cursor:pointer;color:var(--ink3);font-size:14px;">✕</button>
+        </div>
+      </div>
+    </div>
+
+    <!-- Trennlinie -->
+    <div style="display:flex;align-items:center;gap:10px;margin-bottom:1.25rem;">
+      <div style="flex:1;height:1px;background:var(--border2);"></div>
+      <span style="font-size:11px;color:var(--ink3);letter-spacing:0.06em;">ODER MANUELL EINGEBEN</span>
+      <div style="flex:1;height:1px;background:var(--border2);"></div>
+    </div>
+
+    <!-- Manuelle Eingabe -->
+    <div style="margin-bottom:1.25rem;">
+      <label style="font-size:11px;letter-spacing:0.08em;text-transform:uppercase;color:var(--ink3);display:block;margin-bottom:6px;">Ordernummern — eine pro Zeile</label>
+      <textarea id="multiSearchInput" style="width:100%;height:120px;padding:10px 12px;border:1px solid var(--border2);border-radius:var(--radius);font-size:13px;font-family:var(--font-body);resize:vertical;background:var(--creme2);color:var(--ink);outline:none;line-height:1.7;" placeholder="50030512&#10;50030513&#10;50030514&#10;55030522&#10;…"></textarea>
+      <div style="display:flex;gap:8px;margin-top:8px;">
+        <button id="multiSearchGo" class="primary" style="flex:1;height:38px;justify-content:center;"><i class="ti ti-search"></i> Alle suchen</button>
+        <button id="multiSearchClear" style="height:38px;"><i class="ti ti-x"></i> Leeren</button>
+      </div>
+    </div>
+
+    <!-- Ergebnis-Tabelle -->
+    <div id="multiSearchResult" style="display:none;">
+      <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:10px;">
+        <div style="font-size:11px;letter-spacing:0.08em;text-transform:uppercase;color:var(--ink3);" id="multiSearchSummary"></div>
+        <button id="multiSearchPrint" class="primary" style="height:34px;"><i class="ti ti-printer"></i> Drucken</button>
+      </div>
+      <div id="multiSearchTableWrap"></div>
+    </div>
+
+  </div>
+</div>
+
+<!-- Print-only Styles -->
+<style>
+@media print {
+  body > *:not(#printArea) { display: none !important; }
+  #printArea {
+    display: block !important;
+    position: fixed;
+    inset: 0;
+    background: white;
+    padding: 2cm;
+    font-family: 'Inter', sans-serif;
+    font-size: 12px;
+    color: #2E2B26;
+  }
+  #printArea table { width: 100%; border-collapse: collapse; margin-top: 1cm; }
+  #printArea th { background: #EDE8DF; padding: 8px 12px; text-align: left; font-size: 10px; letter-spacing: 0.08em; text-transform: uppercase; border-bottom: 2px solid #8A9E8C; }
+  #printArea td { padding: 8px 12px; border-bottom: 1px solid #E3DDD4; vertical-align: top; }
+  #printArea tr.not-found td { color: #A09890; font-style: italic; }
+  #printArea .print-header { margin-bottom: 0.5cm; }
+  #printArea .print-title { font-size: 18px; font-weight: 700; letter-spacing: 0.1em; color: #6B7D6D; }
+  #printArea .print-sub { font-size: 11px; color: #A09890; margin-top: 3px; }
+}
+</style>
+<div id="printArea" style="display:none;"></div>
+
+<div class="app-layout">
+
+<!-- ── Notizen Sidebar ── -->
+<aside class="notes-sidebar" id="notesSidebar" style="position:relative;">
+  <!-- Collapsed tab (only visible when sidebar is closed) -->
+  <div class="notes-tab" onclick="toggleNotesSidebar()" title="Chat öffnen">
+    <i class="ti ti-message-circle" style="font-size:12px;writing-mode:horizontal-tb;"></i>
+    Chat
+  </div>
+  <div class="notes-header">
+    <div class="notes-header-title">
+      <i class="ti ti-message-circle" style="font-size:14px;"></i>
+      Team-Notizen
+      <button onclick="toggleNotesSidebar()" title="Chat ein-/ausblenden" style="margin-left:auto;background:none;border:none;cursor:pointer;color:var(--ink3);padding:2px 4px;height:auto;font-size:16px;line-height:1;display:flex;align-items:center;" id="notesToggleBtn">
+        <i class="ti ti-layout-sidebar-left-collapse"></i>
+      </button>
+    </div>
+  </div>
+  <div class="notes-feed" id="notesFeed">
+    <div class="note-empty" id="notesEmpty">Noch keine Notizen. Schreib die erste! 👇</div>
+  </div>
+  <div class="notes-compose" id="notesCompose" style="display:none;">
+    <div class="notes-compose-row">
+      <textarea class="notes-textarea" id="notesInput" placeholder="Notiz schreiben…" rows="1"
+        onkeydown="if(event.key==='Enter'&&!event.shiftKey){event.preventDefault();window.sendNote();}"
+        oninput="this.style.height='auto';this.style.height=Math.min(this.scrollHeight,100)+'px'"></textarea>
+      <button class="notes-send" onclick="window.sendNote()" title="Senden">
+        <i class="ti ti-send"></i>
+      </button>
+    </div>
+    <div style="font-size:10px;color:var(--ink3);margin-top:5px;letter-spacing:0.04em;">Enter = Senden · Shift+Enter = Neue Zeile</div>
+  </div>
+</aside>
+
+<main>
+  <div class="toolbar">
+    <div class="search-wrap">
+      <input type="search" id="searchInput" placeholder="Name oder Ordernummer suchen …" style="flex:1;" />
+      <button id="searchBtn"><i class="ti ti-search" aria-hidden="true"></i> Suchen</button>
+    </div>
+    <div class="sep"></div>
+    <button id="multiSearchBtn" title="Mehrere Ordernummern suchen"><i class="ti ti-list-search" aria-hidden="true"></i> Paletten-Suche</button>
+    <div class="sep"></div>
+    <button id="clearSearch" title="Suche zurücksetzen"><i class="ti ti-x" aria-hidden="true"></i></button>
+  </div>
+
+  <div id="searchResult"></div>
+
+  <div class="legend" id="legendBar">
+    <!-- dynamisch gerendert via renderLegend() -->
+  </div>
+
+  <div class="section-label">BIG B2B – LAGERPLAN</div>
+
+  <div class="grid-wrap">
+    <div class="lager-grid" id="lagerGrid"></div>
+    <div class="add-row-bar">
+      <button class="add-row-btn" id="addRowBtn"><i class="ti ti-plus"></i> Neue Reihe</button>
+    </div>
+  </div>
+</main>
+
+</div><!-- end app-layout -->
+
+<div id="modalBg" class="modal-bg" style="display:none;" role="dialog" aria-modal="true">
+  <div class="modal">
+    <div class="modal-header">
+      <h3 id="modalTitle">Palettenplatz</h3>
+      <span id="modalSubtitle"></span>
+    </div>
+
+    <label>Name <span style="font-size:10px;color:var(--ink3);text-transform:none;letter-spacing:0;">(Firma, Person, Projekt …)</span></label>
+    <input type="text" id="modalName" placeholder="z.B. Müller GmbH" style="width:100%;" />
+
+    <hr class="modal-divider" />
+
+    <label>Ordernummern</label>
+    <textarea id="modalOrders" placeholder="z.B.&#10;ORD-2024-001&#10;ORD-2024-002"></textarea>
+    <div class="hint">Eine pro Zeile oder kommagetrennt</div>
+
+    <label>Notiz <span style="font-size:10px;color:var(--ink3);text-transform:none;letter-spacing:0;">(optional)</span></label>
+    <input type="text" id="modalNote" placeholder="z.B. Anlieferung KW24, fragil …" style="width:100%;" />
+
+    <label>Farbe</label>
+    <div class="color-picker" id="colorPicker"></div>
+
+    <div class="modal-actions">
+      <button class="primary" id="modalSave"><i class="ti ti-check" aria-hidden="true"></i> Speichern</button>
+      <button class="danger" id="modalClear"><i class="ti ti-trash" aria-hidden="true"></i> Leeren</button>
+      <button id="modalCancel">Abbrechen</button>
+    </div>
+  </div>
+</div>
+
+<!-- ── Login Screen ── -->
+<div id="loginScreen">
+  <div class="login-box">
+    <div class="login-logo">
+      <svg width="32" height="32" viewBox="0 0 500 500" xmlns="http://www.w3.org/2000/svg">
+        <rect width="500" height="500" rx="80" fill="#EDE8DF"/>
+        <rect x="90"  y="310" width="90" height="80" rx="10" fill="#8A9E8C"/>
+        <rect x="205" y="310" width="90" height="80" rx="10" fill="#A8BA9A"/>
+        <rect x="320" y="310" width="90" height="80" rx="10" fill="#8A9E8C"/>
+        <rect x="147" y="215" width="90" height="85" rx="10" fill="#B8956A"/>
+        <rect x="263" y="215" width="90" height="85" rx="10" fill="#CEAD87"/>
+        <rect x="200" y="120" width="100" height="84" rx="10" fill="#C4B49A"/>
+        <circle cx="390" cy="108" r="22" fill="#6B7D6D"/>
+        <polyline points="390,121 390,97" fill="none" stroke="#FAF8F4" stroke-width="3.5" stroke-linecap="round"/>
+        <polyline points="382,106 390,97 398,106" fill="none" stroke="#FAF8F4" stroke-width="3.5" stroke-linecap="round" stroke-linejoin="round"/>
+      </svg>
+      <span class="login-wordmark">STASHIFY</span>
+    </div>
+    <h2>Anmelden</h2>
+    <p class="login-sub">Lagerverwaltung – nur für autorisierte Nutzer</p>
+    <div class="login-field">
+      <label>E-Mail</label>
+      <input type="email" id="loginEmail" placeholder="name@firma.de" autocomplete="email" />
+    </div>
+    <div class="login-field">
+      <label>Passwort</label>
+      <input type="password" id="loginPassword" placeholder="••••••••" autocomplete="current-password" />
+    </div>
+    <button class="login-btn" id="loginBtn">
+      <i class="ti ti-login"></i> Anmelden
+    </button>
+    <div class="login-error" id="loginError"></div>
+  </div>
+</div>
+
+<div class="toast" id="toast"></div>
+
+<script src="https://cdnjs.cloudflare.com/ajax/libs/qrcodejs/1.0.0/qrcode.min.js"></script>
+<script type="module">
+import { initializeApp }                        from "https://www.gstatic.com/firebasejs/11.0.0/firebase-app.js";
+import { getDatabase, ref, set, remove, onValue } from "https://www.gstatic.com/firebasejs/11.0.0/firebase-database.js";
+import { getAuth, signInWithEmailAndPassword, signOut, onAuthStateChanged }
+                                                 from "https://www.gstatic.com/firebasejs/11.0.0/firebase-auth.js";
+
+// ── Firebase Init ─────────────────────────────────────────────
+const firebaseConfig = {
+  apiKey: "AIzaSyCt1YcCkBeShjYj_xBpNjiNFmCuXwYRqi4",
+  authDomain: "stashing-21ec0.firebaseapp.com",
+  databaseURL: "https://stashing-21ec0-default-rtdb.europe-west1.firebasedatabase.app",
+  projectId: "stashing-21ec0",
+  storageBucket: "stashing-21ec0.firebasestorage.app",
+  messagingSenderId: "957031728508",
+  appId: "1:957031728508:web:4f3a2e81e035b4ac8190f9"
+};
+const app  = initializeApp(firebaseConfig);
+const db   = getDatabase(app);
+const auth = getAuth(app);
+
+const dataRef      = ref(db, "lager/slots");
+const rowNamesRef  = ref(db, "lager/rowNames");
+const rowConfigRef = ref(db, "lager/rowConfig");
+const geminiKeyRef = ref(db, "lager/settings/geminiKey");
+const notesRef     = ref(db, "lager/notes");
+const profilesRef  = ref(db, "lager/profiles");
+
+// ── App State ─────────────────────────────────────────────────
+const ROWS_DEFAULT = [
+  { name: "Reihe A", slots: 6, defaultColor: "", useDefaultColor: false },
+  { name: "Reihe B", slots: 6, defaultColor: "", useDefaultColor: false },
+  { name: "Reihe C", slots: 6, defaultColor: "", useDefaultColor: false },
+  { name: "Reihe D", slots: 6, defaultColor: "", useDefaultColor: false },
+  { name: "Reihe E", slots: 6, defaultColor: "", useDefaultColor: false },
+  { name: "Reihe F", slots: 6, defaultColor: "", useDefaultColor: false },
+];
+let ROWS = ROWS_DEFAULT.map(r => ({ ...r }));
+
+// COLORS is now dynamic — loaded from Firebase, editable at runtime
+let COLORS = [
+  { hex: "",        label: "Leer"      },
+  { hex: "#B5D4F4", label: "Frei"      },
+  { hex: "#DFC07A", label: "Belegt"    },
+  { hex: "#C8E6C9", label: "Gelabelt"  },
+  { hex: "#F5C4B3", label: "Achtung"   },
+  { hex: "#E8D5F5", label: "Sonstiges" },
+];
+const colorsRef = ref(db, "lager/colors");
+
+let data             = {};
+let activeFilter     = "all";
+let highlightedKeys  = [];
+let searchMatchTerms = [];
+let editingKey       = null;
+let dbListenersSub   = null;
+
+// ── Helpers ───────────────────────────────────────────────────
+function parseOrders(raw) {
+  return raw.split(/[\n,;]+/).map(s => s.trim()).filter(Boolean);
+}
+function showToast(msg) {
+  const t = document.getElementById("toast");
+  t.textContent = msg;
+  t.classList.add("show");
+  setTimeout(() => t.classList.remove("show"), 2400);
+}
+window._showToast = showToast; // expose for non-module scripts
+function showStatus(online) {
+  const dot = document.getElementById("statusDot");
+  const txt = document.getElementById("statusTxt");
+  if (!dot) return;
+  dot.style.background = online ? "#4CAF50" : "#E57373";
+  txt.textContent = online ? "Live" : "Verbinde …";
+}
+
+// ── Auth UI ───────────────────────────────────────────────────
+function showLogin() {
+  document.getElementById("loginScreen").style.display = "flex";
+  document.getElementById("loginError").style.display  = "none";
+  document.getElementById("loginPassword").value = "";
+}
+function hideLogin() {
+  document.getElementById("loginScreen").style.display = "none";
+}
+
+document.getElementById("loginBtn").onclick = async () => {
+  const email    = document.getElementById("loginEmail").value.trim();
+  const password = document.getElementById("loginPassword").value;
+  const errEl    = document.getElementById("loginError");
+  const btn      = document.getElementById("loginBtn");
+
+  if (!email || !password) {
+    errEl.textContent = "Bitte E-Mail und Passwort eingeben.";
+    errEl.style.display = "block";
+    return;
+  }
+  btn.disabled = true;
+  btn.innerHTML = '<i class="ti ti-loader-2" style="animation:spin 1s linear infinite"></i> Anmelden …';
+  errEl.style.display = "none";
+
+  try {
+    await signInWithEmailAndPassword(auth, email, password);
+    // onAuthStateChanged handles the rest
+  } catch (err) {
+    btn.disabled = false;
+    btn.innerHTML = '<i class="ti ti-login"></i> Anmelden';
+    const msgs = {
+      "auth/invalid-credential":    "E-Mail oder Passwort falsch.",
+      "auth/user-not-found":        "Kein Konto mit dieser E-Mail.",
+      "auth/wrong-password":        "Passwort falsch.",
+      "auth/too-many-requests":     "Zu viele Versuche. Kurz warten.",
+      "auth/invalid-email":         "Ungültige E-Mail-Adresse.",
+    };
+    errEl.textContent = msgs[err.code] || "Fehler: " + err.message;
+    errEl.style.display = "block";
+  }
+};
+
+// Login auch mit Enter
+document.getElementById("loginPassword").addEventListener("keydown", e => {
+  if (e.key === "Enter") document.getElementById("loginBtn").click();
+});
+document.getElementById("loginEmail").addEventListener("keydown", e => {
+  if (e.key === "Enter") document.getElementById("loginPassword").focus();
+});
+
+document.getElementById("logoutBtn").onclick = () => signOut(auth);
+
+// ── Auth State ────────────────────────────────────────────────
+onAuthStateChanged(auth, user => {
+  if (user) {
+    hideLogin();
+    currentUserUid   = user.uid;
+    currentUserEmail = user.email;
+    document.getElementById("userBadge") && (document.getElementById("userBadge").style.display = "flex");
+    document.getElementById("logoutBtn").style.display  = "flex";
+    if (window.initProfile) window.initProfile(user.email, user.uid);
+    const compose = document.getElementById("notesCompose");
+    if (compose) compose.style.display = "block";
+    startDataListeners();
+    renderLegend();
+    showToast("Willkommen, " + user.email.split("@")[0] + " 👋");
+  } else {
+    showLogin();
+    currentUserUid = null; currentUserEmail = null;
+    document.getElementById("userBadge") && (document.getElementById("userBadge").style.display = "none");
+    document.getElementById("logoutBtn").style.display = "none";
+    const compose = document.getElementById("notesCompose");
+    if (compose) compose.style.display = "none";
+    if (window.resetProfile) window.resetProfile();
+    showStatus(false);
+    data = {};
+    renderGrid();
+  }
+});
+
+// ── Firebase Listeners (nur wenn eingeloggt) ──────────────────
+function startDataListeners() {
+  onValue(dataRef, snap => {
+    data = snap.val() || {};
+    showStatus(true);
+    renderGrid();
+  }, () => showStatus(false));
+
+  onValue(rowConfigRef, snap => {
+    const saved = snap.val();
+    if (saved && Array.isArray(saved) && saved.length > 0) {
+      ROWS = saved.map(r => ({
+        name:            r.name            || "Reihe",
+        slots:           r.slots           || 6,
+        defaultColor:    r.defaultColor    || "",
+        useDefaultColor: r.useDefaultColor || false,
+      }));
+    }
+    renderGrid();
+  });
+
+  onValue(colorsRef, snap => {
+    const saved = snap.val();
+    if (saved && Array.isArray(saved) && saved.length > 0) {
+      COLORS = saved;
+    }
+    renderLegend();
+    renderGrid();
+  });
+
+  onValue(geminiKeyRef, snap => {
+    const key = snap.val();
+    if (key) {
+      localStorage.setItem("stashify_gemini_key", key);
+      showToast("✓ Gemini API-Key geladen");
+    }
+  });
+
+  // Expose Firebase key save for non-module scripts
+  window._saveGeminiKey = (key) => {
+    if (key) set(geminiKeyRef, key);
+    else set(geminiKeyRef, null);
+  };
+
+  // Notes listener
+  onValue(notesRef, snap => {
+    window._notesCache = snap.val() || {};
+    renderNotes(window._notesCache);
+  });
+
+  // Profile images listener
+  onValue(profilesRef, snap => {
+    window._profilesCache = snap.val() || {};
+    if (window._notesCache) renderNotes(window._notesCache);
+  });
+
+  window._saveProfileToFirebase = (uid, dataUrl) => set(ref(db, "lager/profiles/" + uid), dataUrl);
+  window._removeProfileFromFirebase = (uid) => set(ref(db, "lager/profiles/" + uid), null);
+}
+
+// ── Notizen ───────────────────────────────────────────────────
+let currentUserUid   = null;
+let currentUserEmail = null;
+
+function renderNotes(notes) {
+  const feed  = document.getElementById("notesFeed");
+  const empty = document.getElementById("notesEmpty");
+  if (!feed) return;
+  const entries = Object.entries(notes).sort((a,b) => a[1].ts - b[1].ts);
+  if (!entries.length) {
+    feed.innerHTML = '<div class="note-empty" id="notesEmpty">Noch keine Notizen. Schreib die erste! 👇</div>';
+    return;
+  }
+  feed.innerHTML = entries.map(([id, n]) => {
+    const isOwn     = n.uid === currentUserUid;
+    const initial   = (n.name || "?")[0].toUpperCase();
+    const profiles  = window._profilesCache || {};
+    const avatarImg = profiles[n.uid]
+      ? `<img src="${profiles[n.uid]}" style="width:100%;height:100%;object-fit:cover;position:absolute;inset:0;border-radius:50%;" />`
+      : "";
+    const time = n.ts ? new Date(n.ts).toLocaleTimeString("de-DE", {hour:"2-digit",minute:"2-digit"}) : "";
+    const date = n.ts ? new Date(n.ts).toLocaleDateString("de-DE", {day:"2-digit",month:"2-digit"}) : "";
+    const deleteBtn = isOwn
+      ? `<button class="note-delete" onclick="window.deleteNote('${id}')" title="Löschen">✕</button>`
+      : "";
+    return `
+      <div class="note-item ${isOwn ? 'own' : ''}">
+        <div class="note-avatar" style="background:${isOwn ? 'var(--sage)' : 'var(--clay)'}">${initial}${avatarImg}</div>
+        <div class="note-bubble">
+          <div class="note-meta">
+            <span class="note-name">${n.name || "Unbekannt"}</span>
+            <span style="color:var(--ink3)">${date} ${time}</span>
+          </div>
+          <div class="note-body">${escHtml(n.text)}${deleteBtn}</div>
+        </div>
+      </div>`;
+  }).join("");
+  // Scroll to bottom
+  setTimeout(() => { feed.scrollTop = feed.scrollHeight; }, 50);
+}
+
+function escHtml(str) {
+  return (str || "").replace(/&/g,"&amp;").replace(/</g,"&lt;").replace(/>/g,"&gt;").replace(/"/g,"&quot;");
+}
+
+window.toggleNotesSidebar = function() {
+  const sidebar = document.getElementById("notesSidebar");
+  const collapsed = sidebar.classList.toggle("collapsed");
+  localStorage.setItem("stashify_notes_collapsed", collapsed ? "1" : "0");
+};
+
+window.sendNote = function() {
+  const input = document.getElementById("notesInput");
+  const text  = (input?.value || "").trim();
+  if (!text || !currentUserUid) return;
+  const name = (currentUserEmail || "?").split("@")[0];
+  const noteId = Date.now() + "_" + Math.random().toString(36).slice(2,6);
+  set(ref(db, "lager/notes/" + noteId), {
+    text, uid: currentUserUid, name, ts: Date.now()
+  });
+  input.value = "";
+  input.style.height = "36px";
+};
+
+window.deleteNote = function(id) {
+  remove(ref(db, "lager/notes/" + id));
+};
+function saveSlot(key, value) {
+  if (value) set(ref(db, "lager/slots/" + key), value);
+  else       remove(ref(db, "lager/slots/" + key));
+}
+function saveRowConfig() {
+  set(rowConfigRef, ROWS.map(r => ({
+    name:            r.name,
+    slots:           r.slots,
+    defaultColor:    r.defaultColor    || "",
+    useDefaultColor: r.useDefaultColor || false,
+  })));
+}
+
+// ── Grid ──────────────────────────────────────────────────────
+let dragSourceKey = null;
+
+function renderGrid() {
+  const grid = document.getElementById("lagerGrid");
+  grid.innerHTML = "";
+  ROWS.forEach((row, ri) => {
+    const rowDiv = document.createElement("div");
+    rowDiv.className = "reihe-row";
+
+    const lbl = document.createElement("div");
+    lbl.className = "reihe-name";
+    lbl.textContent = row.name;
+    lbl.title = "Klicken zum Umbenennen";
+    lbl.onclick = () => startRenameRow(lbl, ri);
+    rowDiv.appendChild(lbl);
+
+    // Default-color control
+    const colorCtrl = document.createElement("div");
+    colorCtrl.className = "row-default-color";
+    colorCtrl.title = "Standard-Farbe für neue Paletten";
+
+    const toggle = document.createElement("div");
+    toggle.className = "row-color-toggle" + (row.useDefaultColor ? " active" : "");
+    toggle.title = row.useDefaultColor ? "Standard-Farbe aktiv" : "Standard-Farbe aktivieren";
+    toggle.onclick = (e) => {
+      e.stopPropagation();
+      ROWS[ri].useDefaultColor = !ROWS[ri].useDefaultColor;
+      saveRowConfig();
+    };
+    colorCtrl.appendChild(toggle);
+
+    const swatch = document.createElement("div");
+    swatch.className = "row-color-swatch";
+    swatch.style.background = row.defaultColor || "var(--creme2)";
+    swatch.title = "Farbe wählen";
+    swatch.onclick = (e) => {
+      e.stopPropagation();
+      // Remove any existing popup
+      document.querySelectorAll(".row-color-popup").forEach(p => p.remove());
+      const popup = document.createElement("div");
+      popup.className = "row-color-popup";
+      COLORS.filter(c => c.hex).forEach(c => {
+        const s = document.createElement("div");
+        s.className = "row-color-popup-swatch" + (row.defaultColor === c.hex ? " selected" : "");
+        s.style.background = c.hex;
+        s.title = c.label;
+        s.onclick = (ev) => {
+          ev.stopPropagation();
+          ROWS[ri].defaultColor = c.hex;
+          ROWS[ri].useDefaultColor = true;
+          saveRowConfig();
+          popup.remove();
+        };
+        popup.appendChild(s);
+      });
+      document.addEventListener("click", () => popup.remove(), { once: true });
+      rowDiv.appendChild(popup);
+    };
+    colorCtrl.appendChild(swatch);
+    rowDiv.appendChild(colorCtrl);
+
+    const slots = document.createElement("div");
+    slots.className = "palette-slots";
+    for (let s = 0; s < row.slots; s++) {
+      slots.appendChild(makePalette(ri, s, row));
+    }
+
+    // + Platz Button
+    const addSlotBtn = document.createElement("button");
+    addSlotBtn.className = "slot-add-btn";
+    addSlotBtn.title = "Platz hinzufügen";
+    addSlotBtn.innerHTML = '<i class="ti ti-plus"></i>';
+    addSlotBtn.onclick = () => { ROWS[ri].slots++; saveRowConfig(); };
+    slots.appendChild(addSlotBtn);
+    rowDiv.appendChild(slots);
+
+    // Reihen-Controls (Platz entfernen / Reihe löschen)
+    const controls = document.createElement("div");
+    controls.className = "row-controls";
+
+    if (row.slots > 1) {
+      const removeSlotBtn = document.createElement("button");
+      removeSlotBtn.className = "ctrl-btn danger-sm";
+      removeSlotBtn.title = "Letzten Platz entfernen";
+      removeSlotBtn.innerHTML = '<i class="ti ti-minus"></i>';
+      removeSlotBtn.onclick = () => {
+        const lastKey = ri + "_" + (ROWS[ri].slots - 1);
+        if (data[lastKey] && (data[lastKey].name || (data[lastKey].orders||[]).length)) {
+          if (!confirm("Der letzte Platz hat Daten. Trotzdem entfernen?")) return;
+          saveSlot(lastKey, null);
+        }
+        ROWS[ri].slots--;
+        saveRowConfig();
+      };
+      controls.appendChild(removeSlotBtn);
+    }
+
+    if (ROWS.length > 1) {
+      const removeRowBtn = document.createElement("button");
+      removeRowBtn.className = "ctrl-btn danger-sm";
+      removeRowBtn.title = "Reihe entfernen";
+      removeRowBtn.innerHTML = '<i class="ti ti-trash"></i>';
+      removeRowBtn.onclick = () => {
+        const keys = Array.from({length: ROWS[ri].slots}, (_, s) => ri + "_" + s);
+        const hasData = keys.some(k => data[k] && (data[k].name || (data[k].orders||[]).length));
+        if (hasData && !confirm("Diese Reihe hat Daten. Trotzdem entfernen?")) return;
+        keys.forEach(k => saveSlot(k, null));
+        ROWS.splice(ri, 1);
+        saveRowConfig();
+      };
+      controls.appendChild(removeRowBtn);
+    }
+
+    rowDiv.appendChild(controls);
+    grid.appendChild(rowDiv);
+  });
+}
+
+function makePalette(ri, s, row) {
+  const key = ri + "_" + s;
+  const d   = data[key] || {};
+  const orders        = d.orders || [];
+  const name          = d.name   || "";
+  const isEmpty       = !name && orders.length === 0 && !d.color;
+  const isHighlighted = highlightedKeys.includes(key);
+
+  const pal = document.createElement("div");
+  pal.className = "palette" + (isHighlighted ? " highlighted" : "");
+  pal.draggable = !isEmpty;
+
+  // Empty slot color = always the "Frei" color from COLORS (first color with hex)
+  const freiFarbe = COLORS.find(c => c.hex && c.label === "Frei")?.hex
+                 || COLORS.find(c => c.hex)?.hex
+                 || "#B5D4F4";
+  const effectiveColor = d.color || (isEmpty ? freiFarbe : "");
+  if (activeFilter !== "all" && effectiveColor !== activeFilter) pal.style.opacity = "0.18";
+  if (effectiveColor) pal.style.background = effectiveColor;
+
+  const nr = document.createElement("div");
+  nr.className = "palette-nr";
+  const prefix = row.name.replace(/^reihe\s*/i, "").trim().slice(0, 3) || String.fromCharCode(65 + ri);
+  nr.textContent = prefix + (s + 1);
+  pal.appendChild(nr);
+
+  if (name || orders.length > 0) {
+    if (name) {
+      const nt = document.createElement("div");
+      const isMatch = searchMatchTerms.some(t => name.toLowerCase().includes(t));
+      nt.className = "name-tag" + (isMatch ? " match" : "");
+      nt.textContent = name;
+      pal.appendChild(nt);
+    }
+    orders.forEach(ord => {
+      const ot = document.createElement("div");
+      const isMatch = searchMatchTerms.some(t => ord.toLowerCase().includes(t));
+      ot.className = "order-tag" + (isMatch ? " match" : "");
+      ot.textContent = ord;
+      pal.appendChild(ot);
+    });
+    if (d.note) {
+      const nt2 = document.createElement("div");
+      nt2.className = "palette-note";
+      nt2.textContent = d.note;
+      pal.appendChild(nt2);
+    }
+  } else {
+    const ic = document.createElement("i");
+    ic.className = "ti ti-plus plus-icon";
+    ic.setAttribute("aria-hidden", "true");
+    pal.appendChild(ic);
+    const emp = document.createElement("div");
+    emp.className = "palette-empty";
+    emp.textContent = "Leer";
+    pal.appendChild(emp);
+  }
+
+  pal.onclick = () => { if (!pal.classList.contains("dragging")) openModal(key, row.name, s + 1); };
+
+  // ── Drag & Drop ──
+  pal.addEventListener("dragstart", e => {
+    if (isEmpty) { e.preventDefault(); return; }
+    dragSourceKey = key;
+    setTimeout(() => pal.classList.add("dragging"), 0);
+    e.dataTransfer.effectAllowed = "move";
+  });
+  pal.addEventListener("dragend", () => {
+    pal.classList.remove("dragging");
+    dragSourceKey = null;
+    document.querySelectorAll(".palette.drag-over").forEach(p => p.classList.remove("drag-over"));
+  });
+  pal.addEventListener("dragover", e => {
+    if (!dragSourceKey || dragSourceKey === key) return;
+    e.preventDefault();
+    e.dataTransfer.dropEffect = "move";
+    pal.classList.add("drag-over");
+  });
+  pal.addEventListener("dragleave", () => pal.classList.remove("drag-over"));
+  pal.addEventListener("drop", e => {
+    e.preventDefault();
+    pal.classList.remove("drag-over");
+    if (!dragSourceKey || dragSourceKey === key) return;
+    const srcData = data[dragSourceKey] ? { ...data[dragSourceKey] } : null;
+
+    // Apply destination row default color if active
+    if (srcData) {
+      const dstRi = parseInt(key.split("_")[0]);
+      const dstRow = ROWS[dstRi];
+      if (dstRow && dstRow.useDefaultColor && dstRow.defaultColor) {
+        srcData.color = dstRow.defaultColor;
+      }
+    }
+
+    saveSlot(key, srcData);        // Daten auf neuen Platz
+    saveSlot(dragSourceKey, null); // Alten Platz leeren
+    dragSourceKey = null;
+    showToast("Verschoben ✓");
+  });
+
+  return pal;
+}
+
+// ── Reihe umbenennen ──────────────────────────────────────────
+function startRenameRow(lbl, ri) {
+  const input = document.createElement("input");
+  input.type = "text";
+  input.className = "reihe-name-input";
+  input.value = ROWS[ri].name;
+  input.maxLength = 20;
+  lbl.replaceWith(input);
+  input.select();
+  input.focus();
+
+  function commit() {
+    const newName = input.value.trim();
+    if (newName) { ROWS[ri].name = newName; saveRowConfig(); showToast("Reihe umbenannt"); }
+    renderGrid();
+  }
+  input.addEventListener("keydown", e => {
+    if (e.key === "Enter")  { e.preventDefault(); commit(); }
+    if (e.key === "Escape") { renderGrid(); }
+  });
+  input.addEventListener("blur", commit);
+}
+
+// ── Neue Reihe ────────────────────────────────────────────────
+document.getElementById("addRowBtn").onclick = () => {
+  const letters = "ABCDEFGHIJKLMNOPQRSTUVWXYZ";
+  const name = "Reihe " + (letters[ROWS.length] || (ROWS.length + 1));
+  ROWS.push({ name, slots: 6 });
+  saveRowConfig();
+  showToast("Neue Reihe hinzugefügt");
+};
+
+
+
+// ── Modal ─────────────────────────────────────────────────────
+function openModal(key, rowName, slotNum) {
+  editingKey = key;
+  const d  = data[key] || {};
+  const ri = parseInt(key.split("_")[0]);
+  const row = ROWS[ri] || {};
+
+  document.getElementById("modalTitle").textContent    = rowName;
+  document.getElementById("modalSubtitle").textContent = "Platz " + slotNum;
+  document.getElementById("modalName").value           = d.name || "";
+  document.getElementById("modalOrders").value         = (d.orders || []).join("\n");
+  document.getElementById("modalNote").value           = d.note  || "";
+
+  // Pre-select: existing color, or row default if active and slot is empty
+  const isEmpty = !d.name && !(d.orders||[]).length;
+  const preColor = d.color || (isEmpty && row.useDefaultColor ? row.defaultColor : "");
+  renderColorPicker(preColor);
+
+  document.getElementById("modalBg").style.display = "flex";
+  setTimeout(() => document.getElementById("modalName").focus(), 50);
+}
+
+function renderColorPicker(selected) {
+  const cp = document.getElementById("colorPicker");
+  cp.innerHTML = "";
+  COLORS.forEach(c => {
+    const div = document.createElement("div");
+    div.className = "color-opt" + (selected === c.hex ? " selected" : "");
+    div.title = c.label;
+    div.style.background = c.hex || "var(--creme2)";
+    if (!c.hex) div.style.border = "2px solid var(--border2)";
+    div.onclick = () => {
+      cp.querySelectorAll(".color-opt").forEach(x => x.classList.remove("selected"));
+      div.classList.add("selected");
+    };
+    cp.appendChild(div);
+  });
+}
+
+function getSelectedColor() {
+  const opts = Array.from(document.querySelectorAll(".color-opt"));
+  const sel  = document.querySelector(".color-opt.selected");
+  if (!sel) return "";
+  return COLORS[opts.indexOf(sel)]?.hex || "";
+}
+
+document.getElementById("modalSave").onclick = () => {
+  const name   = document.getElementById("modalName").value.trim();
+  const orders = parseOrders(document.getElementById("modalOrders").value);
+  const note   = document.getElementById("modalNote").value.trim();
+  let color    = getSelectedColor();
+
+  // Row default color always wins if active — even over manually chosen colors
+  if (editingKey) {
+    const ri = parseInt(editingKey.split("_")[0]);
+    if (ROWS[ri] && ROWS[ri].useDefaultColor && ROWS[ri].defaultColor) {
+      // Only override if user didn't explicitly pick a different color
+      // (pre-selected = row default, so if unchanged it matches anyway)
+      color = ROWS[ri].defaultColor;
+    }
+  }
+
+  saveSlot(editingKey, (name || orders.length > 0 || color) ? { name, orders, note, color } : null);
+  document.getElementById("modalBg").style.display = "none";
+  showToast("Gespeichert");
+};
+
+document.getElementById("modalClear").onclick = () => {
+  saveSlot(editingKey, null);
+  highlightedKeys = []; searchMatchTerms = [];
+  document.getElementById("modalBg").style.display = "none";
+  showToast("Platz geleert");
+};
+
+document.getElementById("modalCancel").onclick = () => {
+  document.getElementById("modalBg").style.display = "none";
+};
+document.getElementById("modalBg").onclick = e => {
+  if (e.target === document.getElementById("modalBg"))
+    document.getElementById("modalBg").style.display = "none";
+};
+document.addEventListener("keydown", e => {
+  if (e.key === "Escape") document.getElementById("modalBg").style.display = "none";
+});
+
+// ── Suche ─────────────────────────────────────────────────────
+function doSearch() {
+  const raw = document.getElementById("searchInput").value.trim();
+  const q   = raw.toLowerCase();
+  const res = document.getElementById("searchResult");
+  highlightedKeys = []; searchMatchTerms = [];
+
+  if (!q) { res.innerHTML = ""; renderGrid(); return; }
+
+  let results = [];
+  for (const [key, d] of Object.entries(data)) {
+    const matched = [];
+    if (d.name && d.name.toLowerCase().includes(q)) matched.push({ text: d.name, type: "name" });
+    (d.orders || []).forEach(o => { if (o.toLowerCase().includes(q)) matched.push({ text: o, type: "order" }); });
+    if (matched.length > 0) {
+      const [ri, si] = key.split("_").map(Number);
+      results.push({ key, ri, si, matched, d });
+      highlightedKeys.push(key);
+      searchMatchTerms.push(q);
+    }
+  }
+
+  if (results.length === 0) {
+    res.innerHTML = '<div class="not-found"><i class="ti ti-alert-circle"></i> Nichts gefunden für &bdquo;' + raw + '&ldquo;</div>';
+  } else if (results.length === 1) {
+    const r = results[0];
+    const labels = r.matched.map(m => (m.type === "name" ? "&#10106; " : "") + m.text).join(", ");
+    res.innerHTML = '<div class="search-result"><i class="ti ti-map-pin" style="font-size:16px;flex-shrink:0;margin-top:1px;"></i><div><strong>' + labels + '</strong> &rarr; ' + ROWS[r.ri].name + ', Platz ' + (r.si + 1) + (r.d.note ? ' &ndash; <em>' + r.d.note + '</em>' : '') + '</div></div>';
+  } else {
+    let html = '<div class="multi-result"><i class="ti ti-map-pin"></i> <strong>' + results.length + ' Treffer</strong> für &bdquo;' + raw + '&ldquo;:<ul>';
+    results.forEach(r => {
+      const labels = r.matched.map(m => (m.type === "name" ? "&#10106; " : "") + m.text).join(", ");
+      html += '<li>' + labels + ' &rarr; ' + ROWS[r.ri].name + ', Platz ' + (r.si + 1) + (r.d.note ? ' (' + r.d.note + ')' : '') + '</li>';
+    });
+    html += '</ul></div>';
+    res.innerHTML = html;
+  }
+  renderGrid();
+}
+
+document.getElementById("searchBtn").onclick = doSearch;
+document.getElementById("searchInput").addEventListener("keydown", e => { if (e.key === "Enter") doSearch(); });
+document.getElementById("clearSearch").onclick = () => {
+  document.getElementById("searchInput").value = "";
+  document.getElementById("searchResult").innerHTML = "";
+  highlightedKeys = []; searchMatchTerms = [];
+  renderGrid();
+};
+
+// ── Legend (dynamic) ──────────────────────────────────────────
+function renderLegend() {
+  const bar = document.getElementById("legendBar");
+  bar.innerHTML = "";
+
+  // "Alle" item
+  const allItem = document.createElement("div");
+  allItem.className = "legend-item" + (activeFilter === "all" ? " active" : "");
+  allItem.innerHTML = `<div class="legend-dot" style="background:var(--creme2);border:1px solid var(--border2);"></div>
+    <span class="legend-label">Alle</span>`;
+  allItem.addEventListener("click", () => filterByColor("all"));
+  bar.appendChild(allItem);
+
+  // One item per non-empty color
+  COLORS.filter(c => c.hex).forEach((c, idx) => {
+    const item = document.createElement("div");
+    item.className = "legend-item" + (activeFilter === c.hex ? " active" : "");
+    item.dataset.colorHex = c.hex;
+
+    const dot = document.createElement("div");
+    dot.className = "legend-dot";
+    dot.style.background = c.hex;
+
+    const lbl = document.createElement("span");
+    lbl.className = "legend-label";
+    lbl.textContent = c.label;
+    lbl.title = "Doppelklick zum Umbenennen";
+
+    // Single click → filter
+    item.addEventListener("click", () => filterByColor(c.hex));
+
+    // Double click → rename inline
+    lbl.addEventListener("dblclick", e => {
+      e.stopPropagation();
+      const input = document.createElement("input");
+      input.className = "legend-label-input";
+      input.value = c.label;
+      lbl.replaceWith(input);
+      input.focus();
+      input.select();
+
+      function commit() {
+        const newLabel = input.value.trim();
+        if (newLabel && newLabel !== c.label) {
+          COLORS[COLORS.indexOf(c)].label = newLabel;
+          saveColors();
+          showToast("Farbe umbenannt");
+        }
+        renderLegend();
+      }
+      input.addEventListener("keydown", ev => {
+        if (ev.key === "Enter")  { ev.preventDefault(); commit(); }
+        if (ev.key === "Escape") renderLegend();
+      });
+      input.addEventListener("blur", commit);
+    });
+
+    item.appendChild(dot);
+    item.appendChild(lbl);
+    bar.appendChild(item);
+  });
+
+  // Manage button
+  const mgr = document.createElement("button");
+  mgr.className = "legend-manage-btn";
+  mgr.innerHTML = '<i class="ti ti-settings" style="font-size:12px;"></i> Farben';
+  mgr.onclick = openColorManager;
+  bar.appendChild(mgr);
+}
+
+function filterByColor(color) {
+  activeFilter = color;
+  renderLegend();
+  renderGrid();
+}
+window.filterByColor = filterByColor;
+
+function saveColors() {
+  set(colorsRef, COLORS);
+}
+
+// ── Color Manager ─────────────────────────────────────────────
+function openColorManager() {
+  renderColorMgrList();
+  document.getElementById("colorMgrBg").classList.add("open");
+}
+
+function renderColorMgrList() {
+  const list = document.getElementById("colorMgrList");
+  list.innerHTML = "";
+  COLORS.filter(c => c.hex).forEach((c, i) => {
+    const row = document.createElement("div");
+    row.className = "color-mgr-row";
+
+    // Color swatch with native color picker
+    const swatch = document.createElement("div");
+    swatch.className = "color-mgr-swatch";
+    swatch.style.background = c.hex;
+    const nativePicker = document.createElement("input");
+    nativePicker.type = "color";
+    nativePicker.className = "color-mgr-native";
+    nativePicker.value = c.hex;
+    nativePicker.oninput = () => { swatch.style.background = nativePicker.value; };
+    nativePicker.onchange = () => {
+      const oldHex = c.hex;
+      const newHex = nativePicker.value;
+      const realIdx = COLORS.indexOf(c);
+      COLORS[realIdx].hex = newHex;
+
+      // Alle Slots mit der alten Farbe auf die neue Farbe umstellen
+      const updates = {};
+      Object.entries(data).forEach(([key, d]) => {
+        if (d && d.color === oldHex) {
+          updates[key] = { ...d, color: newHex };
+        }
+      });
+      Object.entries(updates).forEach(([key, val]) => saveSlot(key, val));
+
+      // Falls die "Frei"-Farbe (default für leere Plätze) geändert wurde,
+      // wird sie beim nächsten renderGrid() automatisch angezeigt da
+      // leere Plätze immer COLORS[1].hex nehmen (Frei-Farbe)
+      if (activeFilter === oldHex) activeFilter = newHex;
+
+      saveColors();
+      renderColorMgrList();
+      renderLegend();
+      renderGrid();
+      if (Object.keys(updates).length > 0)
+        showToast(`✓ ${Object.keys(updates).length} Paletten auf neue Farbe aktualisiert`);
+    };
+    swatch.appendChild(nativePicker);
+
+    // Name input
+    const nameInput = document.createElement("input");
+    nameInput.className = "color-mgr-name-input";
+    nameInput.value = c.label;
+    nameInput.onchange = () => {
+      const realIdx = COLORS.indexOf(c);
+      COLORS[realIdx].label = nameInput.value.trim() || c.label;
+      saveColors();
+    };
+
+    // Delete button
+    const del = document.createElement("button");
+    del.className = "color-mgr-delete";
+    del.innerHTML = '<i class="ti ti-trash" style="font-size:13px;"></i>';
+    del.title = "Farbe löschen";
+    del.onclick = () => {
+      if (COLORS.filter(x => x.hex).length <= 1) { showToast("Mindestens eine Farbe behalten"); return; }
+      COLORS = COLORS.filter(x => x !== c);
+      if (activeFilter === c.hex) { activeFilter = "all"; }
+      saveColors();
+      renderColorMgrList();
+      renderLegend();
+      showToast("Farbe gelöscht");
+    };
+
+    row.appendChild(swatch);
+    row.appendChild(nameInput);
+    row.appendChild(del);
+    list.appendChild(row);
+  });
+}
+
+window.addColor = () => {
+  const hex   = document.getElementById("newColorPicker").value;
+  const label = document.getElementById("newColorName").value.trim() || "Neue Farbe";
+  if (COLORS.some(c => c.hex === hex)) { showToast("Diese Farbe existiert bereits"); return; }
+  COLORS.push({ hex, label });
+  saveColors();
+  renderColorMgrList();
+  renderLegend();
+  document.getElementById("newColorName").value = "";
+  showToast("Farbe hinzugefügt");
+};
+
+document.getElementById("colorMgrClose").onclick = () => {
+  document.getElementById("colorMgrBg").classList.remove("open");
+  renderLegend();
+};
+document.getElementById("colorMgrBg").onclick = e => {
+  if (e.target === document.getElementById("colorMgrBg"))
+    document.getElementById("colorMgrBg").classList.remove("open");
+};
+
+// ── Export (Firebase-kompatibel) ──────────────────────────────
+document.getElementById("exportBtn").onclick = () => {
+  const firebaseJson = { lager: { slots: data } };
+  const blob = new Blob([JSON.stringify(firebaseJson, null, 2)], { type: "application/json" });
+  const a = document.createElement("a");
+  a.href = URL.createObjectURL(blob);
+  a.download = "stashify-firebase-" + new Date().toISOString().slice(0, 10) + ".json";
+  a.click();
+  showToast("Firebase-Export erstellt");
+};
+
+// ── QR-Code Generator ─────────────────────────────────────────
+let qrCurrentTab = "slots";
+
+window.qrSwitchTab = (tab) => {
+  qrCurrentTab = tab;
+  const sBtn = document.getElementById("qrTabSlots");
+  const pBtn = document.getElementById("qrTabPalettes");
+  const desc = document.getElementById("qrDesc");
+  if (tab === "slots") {
+    sBtn.style.background = "var(--sage)"; sBtn.style.color = "white"; sBtn.style.borderColor = "var(--sage)";
+    pBtn.style.background = "var(--surface)"; pBtn.style.color = "var(--ink2)"; pBtn.style.borderColor = "var(--border2)";
+    desc.textContent = "Diese QR-Codes an den Regalplätzen anbringen. Der Scanner erkennt sie automatisch.";
+  } else {
+    pBtn.style.background = "var(--sage)"; pBtn.style.color = "white"; pBtn.style.borderColor = "var(--sage)";
+    sBtn.style.background = "var(--surface)"; sBtn.style.color = "var(--ink2)"; sBtn.style.borderColor = "var(--border2)";
+    desc.textContent = "Diese QR-Codes auf die Paletten kleben. Beim Scannen erkennt die App welche Palette bewegt wird.";
+  }
+  qrRenderGrid();
+};
+
+function qrMakeCell(qrId, qrValue, labelLine1, labelLine2, sublabel) {
+  const cell = document.createElement("div");
+  cell.style.cssText = "background:white;border:1px solid #ddd;border-radius:8px;padding:10px 8px;text-align:center;break-inside:avoid;";
+  const qrDiv = document.createElement("div");
+  qrDiv.id = qrId;
+  qrDiv.style.cssText = "display:flex;justify-content:center;";
+  cell.appendChild(qrDiv);
+  if (labelLine1) {
+    const l1 = document.createElement("div");
+    l1.textContent = labelLine1;
+    l1.style.cssText = "font-size:10px;margin-top:6px;color:#2E2B26;font-weight:600;letter-spacing:0.03em;line-height:1.3;";
+    cell.appendChild(l1);
+  }
+  if (labelLine2) {
+    const l2 = document.createElement("div");
+    l2.textContent = labelLine2;
+    l2.style.cssText = "font-size:10px;color:#6B6358;letter-spacing:0.03em;line-height:1.3;";
+    cell.appendChild(l2);
+  }
+  if (sublabel) {
+    const sl = document.createElement("div");
+    sl.textContent = sublabel;
+    sl.style.cssText = "font-size:8px;color:#A09890;margin-top:2px;";
+    cell.appendChild(sl);
+  }
+  return { cell, qrDiv };
+}
+
+function qrRenderGrid() {
+  const grid = document.getElementById("qrGrid");
+  grid.innerHTML = "";
+
+  if (qrCurrentTab === "slots") {
+    ROWS.forEach((row, ri) => {
+      for (let s = 0; s < row.slots; s++) {
+        const key    = ri + "_" + s;
+        const qrVal  = "STASHIFY:slot:" + key;
+        const d      = data[key] || {};
+        const orders = (d.orders || []).join(", ");
+        const { cell, qrDiv } = qrMakeCell("qr_" + key, qrVal,
+          row.name, "Platz " + (s + 1),
+          orders ? "↳ " + orders.slice(0, 28) + (orders.length > 28 ? "…" : "") : ""
+        );
+        grid.appendChild(cell);
+        setTimeout(() => new QRCode(qrDiv, {
+          text: qrVal, width: 100, height: 100,
+          colorDark: "#2E2B26", colorLight: "#ffffff",
+          correctLevel: QRCode.CorrectLevel.M
+        }), 0);
+      }
+    });
+  } else {
+    // Collect all unique palette/order IDs across all slots
+    const seen = new Set();
+    Object.values(data).forEach(d => {
+      if (d.name) seen.add(d.name);
+      (d.orders || []).forEach(o => { if (o) seen.add(o); });
+    });
+    if (seen.size === 0) {
+      grid.innerHTML = '<div style="grid-column:1/-1;text-align:center;color:var(--ink3);font-size:13px;padding:2rem;">Keine belegten Plätze — erst Paletten eintragen.</div>';
+      return;
+    }
+    seen.forEach(paletteName => {
+      // Find where this palette currently lives
+      let location = "";
+      Object.entries(data).forEach(([key, d]) => {
+        const [ri, si] = key.split("_").map(Number);
+        if ((d.orders||[]).includes(paletteName) || d.name === paletteName) {
+          location = (ROWS[ri] ? ROWS[ri].name : "Reihe " + ri) + " · " + (si + 1);
+        }
+      });
+      const qrVal = "STASHIFY:palette:" + paletteName;
+      const safeId = "qrp_" + paletteName.replace(/[^a-zA-Z0-9]/g, "_");
+      const { cell, qrDiv } = qrMakeCell(safeId, qrVal,
+        paletteName, location ? "📍 " + location : "", ""
+      );
+      grid.appendChild(cell);
+      setTimeout(() => new QRCode(qrDiv, {
+        text: qrVal, width: 100, height: 100,
+        colorDark: "#2E2B26", colorLight: "#ffffff",
+        correctLevel: QRCode.CorrectLevel.M
+      }), 0);
+    });
+  }
+}
+
+document.getElementById("qrPrintBtn").onclick = () => {
+  qrCurrentTab = "slots";
+  qrSwitchTab("slots");
+  document.getElementById("qrModalBg").style.display = "flex";
+};
+document.getElementById("qrModalClose").onclick = () => {
+  document.getElementById("qrModalBg").style.display = "none";
+};
+document.getElementById("qrModalBg").onclick = e => {
+  if (e.target === document.getElementById("qrModalBg"))
+    document.getElementById("qrModalBg").style.display = "none";
+};
+
+// ── Email-Screenshot via Google Gemini Vision (kostenlos) ────
+let emailImageDataUrl = null;
+
+document.addEventListener("paste", e => {
+  const modal = document.getElementById("multiSearchBg");
+  if (modal.style.display === "none") return;
+  const items = Array.from(e.clipboardData?.items || []);
+  const imgItem = items.find(i => i.type.startsWith("image/"));
+  if (imgItem) { e.preventDefault(); window.handleEmailFile(imgItem.getAsFile()); }
+});
+
+window.handleEmailDrop = function(e) {
+  const f = e.dataTransfer?.files?.[0];
+  if (f && f.type.startsWith("image/")) window.handleEmailFile(f);
+};
+
+window.handleEmailFile = function(file) {
+  if (!file) return;
+  const reader = new FileReader();
+  reader.onload = ev => {
+    emailImageDataUrl = ev.target.result;
+    document.getElementById("emailPreviewImg").src = emailImageDataUrl;
+    document.getElementById("emailPreviewWrap").style.display = "block";
+    document.getElementById("emailDropzoneContent").style.opacity = "0.4";
+    document.getElementById("emailExtractStatus").textContent = "Bild geladen — auf Analysieren klicken";
+    document.getElementById("emailExtractSub").textContent = file.name || "Screenshot";
+  };
+  reader.readAsDataURL(file);
+};
+
+document.getElementById("emailFileInput").onchange = function() {
+  window.handleEmailFile(this.files[0]);
+};
+
+window.clearEmailUpload = function() {
+  emailImageDataUrl = null;
+  document.getElementById("emailPreviewWrap").style.display = "none";
+  document.getElementById("emailDropzoneContent").style.opacity = "1";
+  document.getElementById("emailFileInput").value = "";
+  document.getElementById("emailExtractStatus").textContent = "Bereit zum Analysieren";
+  document.getElementById("emailExtractSub").textContent = "";
+  // Liste und Ergebnis leeren
+  document.getElementById("multiSearchInput").value = "";
+  document.getElementById("multiSearchResult").style.display = "none";
+};
+
+function getGeminiKey() {
+  return localStorage.getItem("stashify_gemini_key") || "";
+}
+
+window.openGeminiKeySetup = function() {
+  const current = getGeminiKey();
+  const key = prompt(
+    "Google Gemini API-Key eingeben:\n\n" +
+    "Kostenlos erhältlich unter: aistudio.google.com\n" +
+    "→ 'Get API key' → 'Create API key'\n\n" +
+    "Der Key wird gespeichert und bleibt erhalten.",
+    current || ""
+  );
+  if (key === null) return false; // Abbrechen gedrückt
+  if (key.trim().length > 10) {
+    localStorage.setItem("stashify_gemini_key", key.trim());
+    // Auch in Firebase speichern (falls verfügbar)
+    if (window._saveGeminiKey) window._saveGeminiKey(key.trim());
+    return true;
+  } else if (key === "") {
+    localStorage.removeItem("stashify_gemini_key");
+    if (window._saveGeminiKey) window._saveGeminiKey(null);
+    return false;
+  }
+  return false;
+};
+
+// Bild 2x hochskalieren für bessere KI-Erkennung kleiner Ziffern
+function upscaleImage(dataUrl) {
+  return new Promise(resolve => {
+    const img = new Image();
+    img.onload = () => {
+      const scale = 2;
+      const canvas = document.createElement("canvas");
+      canvas.width  = img.width  * scale;
+      canvas.height = img.height * scale;
+      const ctx = canvas.getContext("2d");
+      ctx.imageSmoothingEnabled = true;
+      ctx.imageSmoothingQuality = "high";
+      ctx.drawImage(img, 0, 0, canvas.width, canvas.height);
+      // Als PNG zurückgeben (ohne Data-URL-Prefix)
+      resolve(canvas.toDataURL("image/png").split(",")[1]);
+    };
+    img.src = dataUrl;
+  });
+}
+
+window.extractFromEmail = async function() {
+  if (!emailImageDataUrl) { showToast("Bitte zuerst einen Screenshot hochladen"); return; }
+
+  // Key holen — falls nicht vorhanden, einmalig fragen
+  let apiKey = getGeminiKey();
+  if (!apiKey) {
+    const saved = window.openGeminiKeySetup();
+    if (!saved) { showToast("Kein API-Key — Analyse abgebrochen"); return; }
+    apiKey = getGeminiKey();
+    if (!apiKey) return;
+  }
+
+  const btn    = document.getElementById("emailExtractBtn");
+  const status = document.getElementById("emailExtractStatus");
+  const sub    = document.getElementById("emailExtractSub");
+
+  btn.disabled = true;
+  btn.innerHTML = '<i class="ti ti-loader-2" style="animation:spin 1s linear infinite"></i> Analysiere…';
+  status.textContent = "Gemini analysiert das Bild…";
+  sub.textContent    = "Nur PO-Nummern werden ausgelesen";
+
+  try {
+    // Bild 2x hochskalieren für bessere Ziffernerkennung
+    const base64 = await upscaleImage(emailImageDataUrl);
+    const mimeType = "image/png"; // immer PNG nach Upscaling
+
+    const modelsToTry = ["gemini-2.5-flash", "gemini-2.5-flash-lite"];
+
+    async function callGemini(model, prompt) {
+      const response = await fetch(
+        `https://generativelanguage.googleapis.com/v1/models/${model}:generateContent?key=${apiKey}`,
+        {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({
+            contents: [{ parts: [
+              { inline_data: { mime_type: "image/png", data: base64 } },
+              { text: prompt }
+            ]}],
+            generationConfig: { temperature: 0, maxOutputTokens: 800 }
+          })
+        }
+      );
+      const json = await response.json();
+      if (json.error) throw new Error(json.error.message);
+      return json.candidates?.[0]?.content?.parts?.[0]?.text || "";
+    }
+
+    let workingModel = null;
+    let lastErr = "";
+    for (const model of modelsToTry) {
+      try {
+        status.textContent = `Verbinde mit ${model}…`;
+        await callGemini(model, "Antworte nur mit 'OK'.");
+        workingModel = model;
+        break;
+      } catch(e) { lastErr = e.message; }
+    }
+    if (!workingModel) throw new Error(lastErr);
+
+    // Pass 1: Alle PO-Nummern extrahieren
+    status.textContent = "Lese PO-Nummern (Durchgang 1/2)…";
+    const raw1 = await callGemini(workingModel,
+      `Du siehst eine Auftragsmail mit einer Tabelle. Die erste Spalte heißt "PO Nummer".
+Alle PO-Nummern sind EXAKT 8-stellige Zahlen (Beispiele: 55182966, 55795657, 50178707).
+Zähle alle Datenzeilen in der Tabelle und gib die PO-Nummer JEDER Zeile aus.
+Ignoriere nur: die Kopfzeile "PO Nummer" und die letzte Summenzeile (ohne Nummer).
+Antworte NUR mit den 8-stelligen Zahlen, eine pro Zeile, kein anderer Text.`
+    );
+
+    // Pass 2: Nochmal verifizieren mit anderem Prompt
+    status.textContent = "Verifiziere (Durchgang 2/2)…";
+    const raw2 = await callGemini(workingModel,
+      `Zähle die Tabellenzeilen mit Daten in diesem Bild (nur Zeilen mit einer 8-stelligen Zahl in der ersten Spalte "PO Nummer").
+Schreibe dann ALLE diese 8-stelligen Zahlen auf, eine pro Zeile.
+Sei vollständig — schreibe jede einzelne Zeile auf, auch wenn es 10 oder mehr sind.
+Nur die Zahlen ausgeben, kein weiterer Text.`
+    );
+
+    // Beide Passes zusammenführen
+    const allRaw = raw1 + "\n" + raw2;
+    const rawNums = allRaw.match(/\b\d{5,10}\b/g) || [];
+    const nums = [...new Set(rawNums.filter(n => n.length === 8))];
+    emailImageDataUrl = null;
+
+    if (!nums.length) {
+      status.textContent = "⚠ Keine PO-Nummern erkannt";
+      sub.textContent    = "Prüfe ob die Tabelle im Screenshot sichtbar ist";
+    } else {
+      const existing = document.getElementById("multiSearchInput").value.trim();
+      const combined = existing
+        ? [...new Set([...existing.split(/\s+/).filter(Boolean), ...nums])].join("\n")
+        : nums.join("\n");
+      document.getElementById("multiSearchInput").value = combined;
+      status.innerHTML = `<span style="color:var(--sage-dark);">✓ ${nums.length} PO-Nummern erkannt</span>`;
+      sub.textContent  = nums.join(", ");
+      showToast(`✓ ${nums.length} Nummern aus Email extrahiert`);
+      setTimeout(() => document.getElementById("multiSearchGo").click(), 400);
+    }
+
+  } catch (err) {
+    status.textContent = "⚠ Fehler: " + err.message;
+    sub.textContent    = "API-Key prüfen oder nochmal versuchen";
+    emailImageDataUrl  = null;
+    if (err.message.includes("API_KEY") || err.message.includes("key") || err.message.includes("400")) {
+      showToast("API-Key ungültig — bitte neu eingeben");
+      localStorage.removeItem("stashify_gemini_key");
+      if (window._saveGeminiKey) window._saveGeminiKey(null);
+    }
+  }
+
+  btn.disabled = false;
+  btn.innerHTML = '<i class="ti ti-sparkles"></i> Analysieren';
+};
+document.getElementById("multiSearchBtn").onclick = () => {
+  document.getElementById("multiSearchBg").style.display = "flex";
+  document.getElementById("multiSearchResult").style.display = "none";
+  document.getElementById("multiSearchInput").focus();
+};
+document.getElementById("multiSearchClose").onclick = () => {
+  document.getElementById("multiSearchBg").style.display = "none";
+};
+document.getElementById("multiSearchBg").onclick = e => {
+  if (e.target === document.getElementById("multiSearchBg"))
+    document.getElementById("multiSearchBg").style.display = "none";
+};
+document.getElementById("multiSearchClear").onclick = () => {
+  document.getElementById("multiSearchInput").value = "";
+  document.getElementById("multiSearchResult").style.display = "none";
+  document.getElementById("multiSearchInput").focus();
+};
+
+document.getElementById("multiSearchGo").onclick = () => {
+  const raw = document.getElementById("multiSearchInput").value;
+  const queries = raw.split(/[\n,;]+/).map(s => s.trim()).filter(Boolean);
+  if (!queries.length) { showToast("Bitte mindestens eine Ordernummer eingeben"); return; }
+
+  // Search each query against all slots
+  const results = queries.map(q => {
+    const ql = q.toLowerCase();
+    let found = null;
+    for (const [key, d] of Object.entries(data)) {
+      const orders = (d.orders || []).map(o => o.toLowerCase());
+      const name   = (d.name || "").toLowerCase();
+      if (orders.some(o => o === ql || o.includes(ql)) || name === ql || name.includes(ql)) {
+        const [ri, si] = key.split("_").map(Number);
+        found = {
+          key,
+          reihe: ROWS[ri] ? ROWS[ri].name : "Reihe " + ri,
+          platz: si + 1,
+          name:  d.name || "",
+          allOrders: d.orders || [],
+          color: d.color || "",
+          note:  d.note  || "",
+        };
+        break;
+      }
+    }
+    return { query: q, found };
+  });
+
+  // Render table
+  const found   = results.filter(r => r.found).length;
+  const notFound = results.filter(r => !r.found).length;
+  document.getElementById("multiSearchSummary").textContent =
+    `${found} gefunden · ${notFound} nicht gefunden · ${queries.length} gesamt`;
+
+  let rows = results.map(r => {
+    if (r.found) {
+      const f = r.found;
+      const colorDot = f.color ? `<span style="display:inline-block;width:10px;height:10px;border-radius:2px;background:${f.color};margin-right:5px;vertical-align:middle;"></span>` : "";
+      return `<tr>
+        <td style="font-weight:600;">${r.query}</td>
+        <td>${colorDot}${f.reihe} · Platz ${f.platz}</td>
+        <td style="font-size:12px;color:var(--ink2);">${f.allOrders.join(", ")}</td>
+        <td style="font-size:12px;color:var(--ink3);font-style:italic;">${f.note}</td>
+      </tr>`;
+    } else {
+      return `<tr style="opacity:0.55;">
+        <td style="font-weight:600;">${r.query}</td>
+        <td style="font-style:italic;color:var(--ink3);">— nicht gefunden</td>
+        <td></td>
+        <td></td>
+      </tr>`;
+    }
+  }).join("");
+
+  const tableHTML = `
+    <table style="width:100%;border-collapse:collapse;font-size:13px;">
+      <thead>
+        <tr style="border-bottom:2px solid var(--sage);">
+          <th style="text-align:left;padding:7px 10px;font-size:10px;letter-spacing:0.08em;text-transform:uppercase;color:var(--ink3);font-weight:500;background:var(--creme2);">Ordernummer</th>
+          <th style="text-align:left;padding:7px 10px;font-size:10px;letter-spacing:0.08em;text-transform:uppercase;color:var(--ink3);font-weight:500;background:var(--creme2);">Lagerplatz</th>
+          <th style="text-align:left;padding:7px 10px;font-size:10px;letter-spacing:0.08em;text-transform:uppercase;color:var(--ink3);font-weight:500;background:var(--creme2);">Alle Orders auf Platz</th>
+          <th style="text-align:left;padding:7px 10px;font-size:10px;letter-spacing:0.08em;text-transform:uppercase;color:var(--ink3);font-weight:500;background:var(--creme2);">Notiz</th>
+        </tr>
+      </thead>
+      <tbody>${rows}</tbody>
+    </table>`;
+
+  document.getElementById("multiSearchTableWrap").innerHTML = tableHTML;
+  document.getElementById("multiSearchResult").style.display = "block";
+
+  // Prepare print area
+  const now = new Date().toLocaleDateString("de-DE", { day:"2-digit", month:"2-digit", year:"numeric", hour:"2-digit", minute:"2-digit" });
+  document.getElementById("printArea").innerHTML = `
+    <div class="print-header">
+      <div class="print-title">STASHIFY — Paletten-Suchliste</div>
+      <div class="print-sub">Erstellt: ${now} · ${queries.length} Ordernummern · ${found} gefunden</div>
+    </div>
+    <table>
+      <thead>
+        <tr>
+          <th>Ordernummer</th>
+          <th>Lagerplatz</th>
+          <th>Alle Orders auf Platz</th>
+          <th>Notiz</th>
+        </tr>
+      </thead>
+      <tbody>
+        ${results.map(r => r.found
+          ? `<tr><td><strong>${r.query}</strong></td><td>${r.found.reihe} · Platz ${r.found.platz}</td><td>${r.found.allOrders.join(", ")}</td><td>${r.found.note}</td></tr>`
+          : `<tr class="not-found"><td>${r.query}</td><td>— nicht gefunden</td><td></td><td></td></tr>`
+        ).join("")}
+      </tbody>
+    </table>
+  `;
+};
+
+document.getElementById("multiSearchPrint").onclick = () => {
+  document.getElementById("printArea").style.display = "block";
+  window.print();
+  setTimeout(() => {
+    document.getElementById("printArea").style.display = "none";
+    // Liste nach Druck leeren
+    document.getElementById("multiSearchInput").value = "";
+    document.getElementById("multiSearchResult").style.display = "none";
+    clearEmailUpload();
+    showToast("✓ Gedruckt — Liste geleert");
+  }, 1000);
+};
+const style = document.createElement("style");
+style.textContent = "@keyframes spin { to { transform: rotate(360deg); } }";
+document.head.appendChild(style);
+
+// Init
+showStatus(false);
+renderLegend();
+renderGrid();
+// Restore sidebar state
+setTimeout(() => {
+  if (localStorage.getItem("stashify_notes_collapsed") === "1") {
+    document.getElementById("notesSidebar")?.classList.add("collapsed");
+  }
+}, 0);
+</script>
+
+<!-- ── STASHY DIE GANS ── -->
+<div id="goose" style="
+  position: fixed;
+  bottom: -140px;
+  left: 60px;
+  z-index: 9999;
+  cursor: pointer;
+  user-select: none;
+  width: 56px;
+" title="Hallo! Ich bin Stashy 🪿" onclick="gooseQuack()">
+
+  <!-- Sprechblase -->
+  <div id="gooseSpeech" style="
+    display: none;
+    position: absolute;
+    bottom: 108px;
+    left: 50%;
+    transform: translateX(-20%);
+    background: white;
+    border: 2px solid #2E2B26;
+    border-radius: 12px;
+    padding: 7px 13px;
+    font-size: 12px;
+    font-family: 'Inter', sans-serif;
+    color: #2E2B26;
+    white-space: nowrap;
+    box-shadow: 2px 3px 0 #2E2B26;
+    pointer-events: none;
+    z-index: 10001;
+  ">
+    <span id="gooseText">Quak!</span>
+    <div style="position:absolute;bottom:-9px;left:18px;width:0;height:0;border-left:7px solid transparent;border-right:4px solid transparent;border-top:9px solid #2E2B26;"></div>
+    <div style="position:absolute;bottom:-6px;left:19px;width:0;height:0;border-left:6px solid transparent;border-right:3px solid transparent;border-top:7px solid white;"></div>
+  </div>
+
+  <!-- SVG Frames in relativem Container -->
+  <div class="goose-svgs" style="position:relative;width:56px;height:110px;">
+  <!-- Frame A: Bein links vorne -->
+  <svg id="gooseFrameA" width="56" height="110" viewBox="0 0 14 27" xmlns="http://www.w3.org/2000/svg" shape-rendering="crispEdges" style="position:absolute;top:0;left:0;display:block;">
+    <!-- Körper rund -->
+    <rect x="3" y="13" width="8" height="6" fill="#F5F1EA"/>
+    <rect x="2" y="14" width="10" height="4" fill="#F5F1EA"/>
+    <rect x="3" y="12" width="7" height="2" fill="#F5F1EA"/>
+    <!-- Bauch weicher -->
+    <rect x="4" y="14" width="5" height="4" fill="#EDE8DF"/>
+    <!-- Flügel-Detail -->
+    <rect x="2" y="13" width="2" height="5" fill="#E3DDD4"/>
+    <rect x="10" y="13" width="2" height="5" fill="#E3DDD4"/>
+    <rect x="2" y="15" width="1" height="2" fill="#D4CFC8"/>
+    <!-- Schwanz -->
+    <rect x="1" y="15" width="2" height="2" fill="#E3DDD4"/>
+    <rect x="1" y="16" width="1" height="1" fill="#D4CFC8"/>
+    <!-- Langer Hals -->
+    <rect x="7" y="7"  width="2" height="6" fill="#F5F1EA"/>
+    <rect x="6" y="8"  width="3" height="4" fill="#F5F1EA"/>
+    <rect x="7" y="6"  width="3" height="3" fill="#F5F1EA"/>
+    <!-- Kopf rund & groß -->
+    <rect x="5" y="2"  width="6" height="5" fill="#F5F1EA"/>
+    <rect x="4" y="3"  width="8" height="3" fill="#F5F1EA"/>
+    <rect x="6" y="1"  width="4" height="2" fill="#F5F1EA"/>
+    <!-- Wange rosa -->
+    <rect x="9" y="5"  width="2" height="1" fill="#F5C4B3" opacity="0.85"/>
+    <!-- Auge groß -->
+    <rect x="9" y="3"  width="2" height="2" fill="#2E2B26"/>
+    <rect x="10" y="3" width="1" height="1" fill="white"/>
+    <!-- Schnabel orange-rot -->
+    <rect x="11" y="4" width="3" height="1" fill="#E8622A"/>
+    <rect x="11" y="5" width="2" height="1" fill="#C44E1A"/>
+    <!-- BEINE Frame A: links vor, rechts hinten -->
+    <!-- Linkes Bein (vorne) -->
+    <rect x="5" y="19" width="2" height="4" fill="#E8622A"/>
+    <rect x="3" y="23" width="4" height="1" fill="#C44E1A"/>
+    <!-- Rechtes Bein (hinten/kurz) -->
+    <rect x="8" y="19" width="2" height="2" fill="#E8622A"/>
+    <rect x="8" y="21" width="3" height="1" fill="#C44E1A"/>
+  </svg>
+
+  <!-- Frame B: Bein rechts vorne -->
+  <svg id="gooseFrameB" width="56" height="110" viewBox="0 0 14 27" xmlns="http://www.w3.org/2000/svg" shape-rendering="crispEdges" style="display:none;position:absolute;top:0;left:0;">
+    <!-- Körper (identisch) -->
+    <rect x="3" y="13" width="8" height="6" fill="#F5F1EA"/>
+    <rect x="2" y="14" width="10" height="4" fill="#F5F1EA"/>
+    <rect x="3" y="12" width="7" height="2" fill="#F5F1EA"/>
+    <rect x="4" y="14" width="5" height="4" fill="#EDE8DF"/>
+    <rect x="2" y="13" width="2" height="5" fill="#E3DDD4"/>
+    <rect x="10" y="13" width="2" height="5" fill="#E3DDD4"/>
+    <rect x="2" y="15" width="1" height="2" fill="#D4CFC8"/>
+    <rect x="1" y="15" width="2" height="2" fill="#E3DDD4"/>
+    <rect x="1" y="16" width="1" height="1" fill="#D4CFC8"/>
+    <!-- Hals -->
+    <rect x="7" y="7"  width="2" height="6" fill="#F5F1EA"/>
+    <rect x="6" y="8"  width="3" height="4" fill="#F5F1EA"/>
+    <rect x="7" y="6"  width="3" height="3" fill="#F5F1EA"/>
+    <!-- Kopf leicht angehoben beim Schritt -->
+    <rect x="5" y="1"  width="6" height="5" fill="#F5F1EA"/>
+    <rect x="4" y="2"  width="8" height="3" fill="#F5F1EA"/>
+    <rect x="6" y="0"  width="4" height="2" fill="#F5F1EA"/>
+    <rect x="9" y="4"  width="2" height="1" fill="#F5C4B3" opacity="0.85"/>
+    <rect x="9" y="2"  width="2" height="2" fill="#2E2B26"/>
+    <rect x="10" y="2" width="1" height="1" fill="white"/>
+    <rect x="11" y="3" width="3" height="1" fill="#E8622A"/>
+    <rect x="11" y="4" width="2" height="1" fill="#C44E1A"/>
+    <!-- BEINE Frame B: rechts vor, links hinten -->
+    <!-- Rechtes Bein (vorne) -->
+    <rect x="8" y="19" width="2" height="4" fill="#E8622A"/>
+    <rect x="7" y="23" width="4" height="1" fill="#C44E1A"/>
+    <!-- Linkes Bein (hinten/kurz) -->
+    <rect x="5" y="19" width="2" height="2" fill="#E8622A"/>
+    <rect x="4" y="21" width="3" height="1" fill="#C44E1A"/>
+  </svg>
+
+  <!-- Frame Sitzen: beide Beine eingezogen -->
+  <svg id="gooseFrameSit" width="56" height="110" viewBox="0 0 14 27" xmlns="http://www.w3.org/2000/svg" shape-rendering="crispEdges" style="display:none;position:absolute;top:0;left:0;">
+    <rect x="3" y="14" width="8" height="6" fill="#F5F1EA"/>
+    <rect x="2" y="15" width="10" height="4" fill="#F5F1EA"/>
+    <rect x="3" y="13" width="7" height="2" fill="#F5F1EA"/>
+    <rect x="4" y="15" width="5" height="4" fill="#EDE8DF"/>
+    <rect x="2" y="14" width="2" height="5" fill="#E3DDD4"/>
+    <rect x="10" y="14" width="2" height="5" fill="#E3DDD4"/>
+    <rect x="1" y="16" width="2" height="2" fill="#E3DDD4"/>
+    <!-- Hals leicht nach vorne gebeugt -->
+    <rect x="7" y="8"  width="2" height="6" fill="#F5F1EA"/>
+    <rect x="6" y="9"  width="4" height="4" fill="#F5F1EA"/>
+    <rect x="8" y="7"  width="3" height="3" fill="#F5F1EA"/>
+    <!-- Kopf -->
+    <rect x="6" y="2"  width="6" height="5" fill="#F5F1EA"/>
+    <rect x="5" y="3"  width="8" height="3" fill="#F5F1EA"/>
+    <rect x="7" y="1"  width="4" height="2" fill="#F5F1EA"/>
+    <rect x="10" y="5" width="2" height="1" fill="#F5C4B3" opacity="0.85"/>
+    <rect x="10" y="3" width="2" height="2" fill="#2E2B26"/>
+    <rect x="11" y="3" width="1" height="1" fill="white"/>
+    <rect x="12" y="4" width="3" height="1" fill="#E8622A"/>
+    <rect x="12" y="5" width="2" height="1" fill="#C44E1A"/>
+    <!-- Füßchen sitzen unten raus -->
+    <rect x="4" y="20" width="2" height="2" fill="#E8622A"/>
+    <rect x="3" y="22" width="4" height="1" fill="#C44E1A"/>
+    <rect x="8" y="20" width="2" height="2" fill="#E8622A"/>
+    <rect x="7" y="22" width="4" height="1" fill="#C44E1A"/>
+  </svg>
+
+  <!-- Frame FLAP-UP: Flügel oben ausgebreitet (panisch!) -->
+  <svg id="gooseFrameFlapUp" width="56" height="110" viewBox="0 0 14 27" xmlns="http://www.w3.org/2000/svg" shape-rendering="crispEdges" style="display:none;position:absolute;top:0;left:0;">
+    <!-- Körper -->
+    <rect x="3" y="13" width="8" height="6" fill="#F5F1EA"/>
+    <rect x="2" y="14" width="10" height="4" fill="#F5F1EA"/>
+    <rect x="3" y="12" width="7" height="2" fill="#F5F1EA"/>
+    <rect x="4" y="14" width="5" height="4" fill="#EDE8DF"/>
+    <!-- Flügel OBEN ausgestreckt -->
+    <rect x="0"  y="8"  width="3" height="2" fill="#E3DDD4"/>
+    <rect x="0"  y="6"  width="2" height="3" fill="#D4CFC8"/>
+    <rect x="11" y="8"  width="3" height="2" fill="#E3DDD4"/>
+    <rect x="12" y="6"  width="2" height="3" fill="#D4CFC8"/>
+    <!-- Schwanz -->
+    <rect x="1" y="16" width="2" height="2" fill="#E3DDD4"/>
+    <!-- Hals gestreckt (Panik!) -->
+    <rect x="7" y="5"  width="2" height="8" fill="#F5F1EA"/>
+    <rect x="6" y="6"  width="3" height="5" fill="#F5F1EA"/>
+    <!-- Kopf -->
+    <rect x="5" y="1"  width="6" height="5" fill="#F5F1EA"/>
+    <rect x="4" y="2"  width="8" height="3" fill="#F5F1EA"/>
+    <rect x="6" y="0"  width="4" height="2" fill="#F5F1EA"/>
+    <!-- Auge (weit auf!) -->
+    <rect x="9" y="2"  width="3" height="3" fill="#2E2B26"/>
+    <rect x="10" y="2" width="1" height="1" fill="white"/>
+    <rect x="11" y="4" width="1" height="1" fill="white"/>
+    <rect x="9" y="5"  width="2" height="1" fill="#F5C4B3" opacity="0.85"/>
+    <!-- Schnabel (offen!) -->
+    <rect x="11" y="3" width="3" height="1" fill="#E8622A"/>
+    <rect x="11" y="4" width="4" height="1" fill="#C44E1A"/>
+    <rect x="12" y="5" width="2" height="1" fill="#C44E1A"/>
+    <!-- Beine hängen -->
+    <rect x="5" y="19" width="2" height="3" fill="#E8622A"/>
+    <rect x="4" y="22" width="3" height="1" fill="#C44E1A"/>
+    <rect x="8" y="19" width="2" height="3" fill="#E8622A"/>
+    <rect x="8" y="22" width="3" height="1" fill="#C44E1A"/>
+  </svg>
+
+  <!-- Frame FLAP-DOWN: Flügel unten ausgebreitet -->
+  <svg id="gooseFrameFlapDown" width="56" height="110" viewBox="0 0 14 27" xmlns="http://www.w3.org/2000/svg" shape-rendering="crispEdges" style="display:none;position:absolute;top:0;left:0;">
+    <!-- Körper -->
+    <rect x="3" y="13" width="8" height="6" fill="#F5F1EA"/>
+    <rect x="2" y="14" width="10" height="4" fill="#F5F1EA"/>
+    <rect x="3" y="12" width="7" height="2" fill="#F5F1EA"/>
+    <rect x="4" y="14" width="5" height="4" fill="#EDE8DF"/>
+    <!-- Flügel UNTEN ausgestreckt -->
+    <rect x="0"  y="15" width="3" height="2" fill="#E3DDD4"/>
+    <rect x="0"  y="17" width="2" height="2" fill="#D4CFC8"/>
+    <rect x="11" y="15" width="3" height="2" fill="#E3DDD4"/>
+    <rect x="12" y="17" width="2" height="2" fill="#D4CFC8"/>
+    <!-- Schwanz -->
+    <rect x="1" y="16" width="2" height="2" fill="#E3DDD4"/>
+    <!-- Hals Panik -->
+    <rect x="7" y="5"  width="2" height="8" fill="#F5F1EA"/>
+    <rect x="6" y="6"  width="3" height="5" fill="#F5F1EA"/>
+    <!-- Kopf -->
+    <rect x="5" y="1"  width="6" height="5" fill="#F5F1EA"/>
+    <rect x="4" y="2"  width="8" height="3" fill="#F5F1EA"/>
+    <rect x="6" y="0"  width="4" height="2" fill="#F5F1EA"/>
+    <rect x="9" y="2"  width="3" height="3" fill="#2E2B26"/>
+    <rect x="10" y="2" width="1" height="1" fill="white"/>
+    <rect x="9" y="5"  width="2" height="1" fill="#F5C4B3" opacity="0.85"/>
+    <rect x="11" y="3" width="3" height="1" fill="#E8622A"/>
+    <rect x="11" y="4" width="3" height="1" fill="#C44E1A"/>
+    <!-- Beine hängen -->
+    <rect x="5" y="19" width="2" height="3" fill="#E8622A"/>
+    <rect x="4" y="22" width="3" height="1" fill="#C44E1A"/>
+    <rect x="8" y="19" width="2" height="3" fill="#E8622A"/>
+    <rect x="8" y="22" width="3" height="1" fill="#C44E1A"/>
+  </svg>
+
+  <!-- Frame SCHLAF: Kopf schaut aus der Hütte (seitlich liegend) -->
+  <svg id="gooseFrameSleep" width="56" height="110" viewBox="0 0 14 27" xmlns="http://www.w3.org/2000/svg" shape-rendering="crispEdges" style="display:none;position:absolute;top:0;left:0;">
+    <!-- Körper nur angedeutet (liegt drin) -->
+    <rect x="2" y="18" width="10" height="4" fill="#F5F1EA"/>
+    <rect x="1" y="19" width="12" height="2" fill="#F5F1EA"/>
+    <rect x="3" y="17" width="7"  height="2" fill="#EDE8DF"/>
+    <!-- Hals liegt flach -->
+    <rect x="5" y="14" width="6"  height="2" fill="#F5F1EA"/>
+    <rect x="5" y="13" width="5"  height="2" fill="#F5F1EA"/>
+    <!-- Kopf liegt seitlich -->
+    <rect x="5" y="10" width="7"  height="4" fill="#F5F1EA"/>
+    <rect x="4" y="11" width="8"  height="2" fill="#F5F1EA"/>
+    <!-- Auge geschlossen (Strich) -->
+    <rect x="8" y="11" width="3"  height="1" fill="#2E2B26"/>
+    <!-- Wange -->
+    <rect x="9" y="13" width="2"  height="1" fill="#F5C4B3" opacity="0.85"/>
+    <!-- Schnabel -->
+    <rect x="11" y="12" width="3" height="1" fill="#E8622A"/>
+    <!-- Zzz Buchstaben -->
+    <text x="9" y="9" font-size="3" fill="#6B7D6D" font-family="sans-serif" opacity="0.9">z</text>
+    <text x="11" y="6" font-size="2" fill="#6B7D6D" font-family="sans-serif" opacity="0.6">z</text>
+  </svg>
+
+</div>
+  </div><!-- Ende Frame-Container -->
+
+</div><!-- Ende #goose -->
+
+<style>
+@keyframes gooseBob    { 0%,100%{transform:translateY(0)}  50%{transform:translateY(-5px)} }
+@keyframes gooseWiggle { 0%,100%{transform:rotate(0deg)} 30%{transform:rotate(-10deg)} 70%{transform:rotate(10deg)} }
+@keyframes speechPop   { 0%{transform:translateX(-20%) scale(0.7);opacity:0} 100%{transform:translateX(-20%) scale(1);opacity:1} }
+</style>
+
+<script>
+(function(){
+  const goose    = document.getElementById("goose");
+  const fA       = document.getElementById("gooseFrameA");
+  const fB       = document.getElementById("gooseFrameB");
+  const fS       = document.getElementById("gooseFrameSit");
+  const fFU      = document.getElementById("gooseFrameFlapUp");
+  const fFD      = document.getElementById("gooseFrameFlapDown");
+  const fSleep   = document.getElementById("gooseFrameSleep");
+  const speech   = document.getElementById("gooseSpeech");
+  const gooseTxt = document.getElementById("gooseText");
+  const _toast   = () => window._showToast || console.log;
+
+  const quacks = [
+    "Quak! 🪿", "QUAK QUAK!", "Alles auf Lager?",
+    "Quaaak~", "Schöner Tag! ☀️", "Quak quak quak!",
+    "Ich bin Stashy! 🦢", "Alles im grünen Bereich!",
+    "Quak? Quak!", "Ich liebe Lager! 📦", "Honk! 📣",
+    "Hast du heute gespeichert? 💾", "Quak! Quak! Quak!",
+    "Schau mich an! 🪿", "Bin gleich wieder da…",
+    "Noch mehr Paletten? Quak!", "*wackelt mit dem Schwanz*",
+    "Guten Tag! 👋", "Quak! Alles läuft! 🏃",
+  ];
+
+  const pauseReminders = [
+    "Hey! Zeit für eine Pause! ☕",
+    "Quak! Du arbeitest schon eine Stunde! 🧘",
+    "Steh kurz auf und streck dich! 🪿",
+    "Pausen-Zeit! Ich passe auf das Lager auf! 😴",
+    "QUAK! Kaffee holen! ☕",
+    "Du machst das super — aber jetzt kurz Pause! 🌿",
+    "Ruh dich kurz aus! Ich wache hier! 🪿",
+  ];
+
+  // Pause-Erinnerung ca. jede Stunde (±10 Min Zufall)
+  function schedulePauseReminder() {
+    const wait = 55 * 60 * 1000 + Math.random() * 10 * 60 * 1000;
+    setTimeout(() => {
+      const msg = pauseReminders[Math.floor(Math.random() * pauseReminders.length)];
+      // Stashy erscheinen lassen falls versteckt
+      if (!isVisible && !gooseLocked) {
+        hatchFromEgg();
+        setTimeout(() => showSpeech(msg, 5000), 800);
+      } else if (isVisible) {
+        showSpeech(msg, 5000);
+      }
+      schedulePauseReminder(); // nächste Erinnerung einplanen
+    }, wait);
+  }
+
+  let isVisible   = false;
+  let gooseLocked = false;
+  let walkDir     = 1;
+  let currentX  = 60;
+  let walkRAF   = null;
+  let frameToggle = false;
+  let frameRAF  = null;
+  let sitBobRAF = null;
+  let behaviorTO = null;
+
+  // ── Show speech ──
+  function showSpeech(text, ms=2400) {
+    gooseTxt.textContent = text;
+    speech.style.display = "block";
+    speech.style.animation = "speechPop 0.2s ease-out";
+    clearTimeout(speech._t);
+    speech._t = setTimeout(() => { speech.style.display="none"; }, ms);
+  }
+  window.gooseQuack = () => showSpeech(quacks[Math.floor(Math.random()*quacks.length)]);
+
+  // ── Frame helpers ──
+  const svgWrap = goose.querySelector(".goose-svgs");
+  function showFrame(f) {
+    fA.style.display    = f==="A"  ? "block" : "none";
+    fB.style.display    = f==="B"  ? "block" : "none";
+    fS.style.display    = f==="S"  ? "block" : "none";
+    fFU.style.display   = f==="FU" ? "block" : "none";
+    fFD.style.display   = f==="FD" ? "block" : "none";
+    fSleep.style.display= f==="SL" ? "block" : "none";
+  }
+  function resetFrames() {
+    fA.style.display="block"; fB.style.display="none"; fS.style.display="none";
+    fFU.style.display="none"; fFD.style.display="none"; fSleep.style.display="none";
+    svgWrap.style.transform="";
+  }
+  function setMirror(flip) {
+    svgWrap.style.transform = flip ? "scaleX(-1)" : "scaleX(1)";
+  }
+
+  // ── Flap cycle (proper wing frames) ──
+  let flapRAF2 = null, flapToggle2 = false;
+  function startFlapFrames(fast) {
+    let last = 0;
+    const interval = fast ? 100 : 160;
+    function tick(ts) {
+      if (ts - last > interval) {
+        flapToggle2 = !flapToggle2;
+        showFrame(flapToggle2 ? "FU" : "FD");
+        last = ts;
+      }
+      flapRAF2 = requestAnimationFrame(tick);
+    }
+    flapRAF2 = requestAnimationFrame(tick);
+  }
+  function stopFlapFrames() {
+    if (flapRAF2) { cancelAnimationFrame(flapRAF2); flapRAF2 = null; }
+  }
+  window.startFlapFrames = startFlapFrames;
+  window.stopFlapFrames  = stopFlapFrames;
+
+  // ── Walk animation: alternate frames ──
+  function startWalkFrames() {
+    let last=0, interval=200;
+    function tick(ts) {
+      if(ts-last>interval) {
+        frameToggle=!frameToggle;
+        showFrame(frameToggle?"A":"B");
+        last=ts;
+      }
+      frameRAF=requestAnimationFrame(tick);
+    }
+    frameRAF=requestAnimationFrame(tick);
+  }
+  function stopWalkFrames() {
+    if(frameRAF){cancelAnimationFrame(frameRAF);frameRAF=null;}
+  }
+
+  // ── Sit bob ──
+  function startSitBob() {
+    showFrame("S");
+    let last=0, dir=1, y=0;
+    function tick(ts) {
+      if(ts-last>16) { y+=dir*0.3; if(y>4||y<0)dir*=-1; goose.style.marginBottom=y+"px"; last=ts; }
+      sitBobRAF=requestAnimationFrame(tick);
+    }
+    sitBobRAF=requestAnimationFrame(tick);
+  }
+  function stopSitBob() {
+    if(sitBobRAF){cancelAnimationFrame(sitBobRAF);sitBobRAF=null;}
+    goose.style.marginBottom="0px";
+  }
+
+  // ── Walk across screen ──
+  function startWalk() {
+    stopSitBob();
+    setMirror(walkDir===-1);
+    startWalkFrames();
+    const speed=1.2;
+    let last=0;
+    function step(ts) {
+      if(ts-last>16){
+        currentX+=walkDir*speed;
+        if(currentX>window.innerWidth-80){walkDir=-1;setMirror(true);}
+        if(currentX<10)                  {walkDir= 1;setMirror(false);}
+        goose.style.transition="none";
+        goose.style.left=currentX+"px";
+        last=ts;
+      }
+      walkRAF=requestAnimationFrame(step);
+    }
+    walkRAF=requestAnimationFrame(step);
+    behaviorTO=setTimeout(()=>{stopWalk();pickBehavior();}, 3500+Math.random()*4000);
+  }
+  function stopWalk() {
+    if(walkRAF){cancelAnimationFrame(walkRAF);walkRAF=null;}
+    stopWalkFrames();
+    resetFrames();
+    if(behaviorTO){clearTimeout(behaviorTO);behaviorTO=null;}
+  }
+
+  // ── Sit ──
+  function sit() {
+    stopWalk();
+    startSitBob();
+    if(Math.random()<0.6) setTimeout(()=>showSpeech(quacks[Math.floor(Math.random()*quacks.length)],2000),800);
+    behaviorTO=setTimeout(()=>{ stopSitBob(); resetFrames(); pickBehavior(); }, 2800+Math.random()*3200);
+  }
+
+  // ── Wiggle ──
+  function wiggle() {
+    stopWalk(); stopSitBob(); resetFrames();
+    svgWrap.style.animation="gooseWiggle 0.22s ease-in-out 5";
+    behaviorTO=setTimeout(()=>{ svgWrap.style.animation=""; pickBehavior(); }, 1200);
+  }
+
+  // ── Slide in ──
+  function slideIn() {
+    const egg = document.getElementById("gooseEgg");
+    if (egg) egg.style.display = "none";
+    currentX = 60 + Math.random()*(window.innerWidth-200);
+    goose.style.left = currentX + "px";
+    resetFrames(); setMirror(false);
+    goose.style.transition = "bottom 0.55s cubic-bezier(.34,1.4,.64,1)";
+    goose.style.bottom = "0px";
+    isVisible = true;
+    setTimeout(pickBehavior, 800);
+  }
+
+  // ── Slide out + show egg ──
+  // ── Modus-Flag: aus Hütte aufgewacht = bleibt dauerhaft sichtbar ──
+  let fromHut = false; // true = wurde aus Hütte geweckt → verschwindet nicht mehr von selbst
+
+  function slideOut(cb) {
+    stopWalk(); stopSitBob();
+    resetFrames();
+    speech.style.display = "none";
+    goose.style.transition = "bottom 0.4s ease-in";
+    goose.style.bottom = "-140px";
+    isVisible = false;
+    setTimeout(() => {
+      if (!gooseLocked) showEgg();
+      if (cb) cb();
+    }, 450);
+  }
+
+  // ── Pick behavior ──
+  function pickBehavior() {
+    if (!isVisible) return;
+    const r = Math.random();
+    if      (r < 0.42) startWalk();
+    else if (r < 0.75) sit();
+    else if (r < 0.88) wiggle();
+    else if (fromHut) {
+      // Aus Hütte geweckt → bleibt! Kein slideOut, einfach weiter
+      startWalk();
+    } else {
+      // Normal aus Ei → verschwindet nach ~15 Min zurück ins Ei
+      slideOut(() => scheduleNext());
+    }
+  }
+
+  function scheduleNext() {
+    // ~15 Min warten dann wieder aus Ei schlüpfen
+    const wait = 840000 + Math.random() * 120000;
+    setTimeout(() => { if (!isVisible && !gooseLocked) hatchFromEgg(); }, wait);
+  }
+
+  // ── Show egg ──
+  function showEgg() {
+    const egg = document.getElementById("gooseEgg");
+    if (!egg || gooseLocked) return;
+    egg.style.display = "block";
+    egg.style.animation = "none";
+    requestAnimationFrame(() => {
+      egg.style.animation = "eggPop 0.35s cubic-bezier(.34,1.56,.64,1)";
+      setTimeout(() => egg.style.animation = "", 400);
+    });
+  }
+
+  // ── Schlüpf-Animation ──
+  function hatchFromEgg() {
+    const egg = document.getElementById("gooseEgg");
+    if (!egg || egg.style.display === "none") { fromHut = false; slideIn(); return; }
+    egg.classList.add("hatching");
+    setTimeout(() => {
+      egg.classList.remove("hatching");
+      egg.style.display = "none";
+      fromHut = false; // Aus Ei → kann wieder verschwinden
+      slideIn();
+    }, 700);
+  }
+
+  window.gooseHatch = function() {
+    if (gooseLocked) return;
+    if (!isVisible) hatchFromEgg();
+    else gooseQuack();
+  };
+
+  // ── Lock toggle ──
+  window.gooseToggleLock = function() {
+    gooseLocked = !gooseLocked;
+    localStorage.setItem("stashy_locked", gooseLocked ? "1" : "0");
+    const btn = document.getElementById("gooseLockBtn");
+    const egg = document.getElementById("gooseEgg");
+    if (gooseLocked) {
+      fromHut = false;
+      if (isVisible) slideOut();
+      else {
+        // Falls schläft — auch Hütten-Anzeige ausblenden
+        const sh = document.getElementById("stashySleepingHead");
+        if (sh) sh.style.display = "none";
+      }
+      if (egg) { egg.style.opacity = "0.35"; egg.title = "Stashy ist eingesperrt 🥚"; }
+      if (btn) btn.textContent = "🪿 Stashy freilassen";
+    } else {
+      if (egg) { egg.style.opacity = "1"; egg.title = "Stashy schlüpfen lassen 🥚"; }
+      if (btn) btn.textContent = "🥚 Stashy ins Ei sperren";
+      showEgg();
+    }
+  };
+
+  // Expose fromHut flag for wake system
+  Object.defineProperty(window, 'gooseFromHut', { get: ()=>fromHut, set: v=>{fromHut=v;} });
+
+  // Expose for drag system
+  window.stopWalk    = () => { isWalking=false; if(walkRAF){cancelAnimationFrame(walkRAF);walkRAF=null;} stopWalkFrames(); resetFrames(); if(behaviorTO){clearTimeout(behaviorTO);behaviorTO=null;} };
+  window.stopSitBob  = stopSitBob;
+  window.pickBehavior = pickBehavior;
+  window.showSpeech   = showSpeech;
+  Object.defineProperty(window, 'currentX', { get: ()=>currentX, set: v=>{currentX=v;} });
+  Object.defineProperty(window, 'gooseLocked', { get: ()=>gooseLocked, set: v=>{gooseLocked=v;} });
+  Object.defineProperty(window, 'behaviorTO', { get: ()=>behaviorTO, set: v=>{behaviorTO=v;} });
+
+  // ── Init ──
+  gooseLocked = localStorage.getItem("stashy_locked") === "1";
+  // Wait for DOM to be ready before touching egg/btn elements
+  window.addEventListener("DOMContentLoaded", () => {}, { once: true });
+  setTimeout(() => {
+    const eggEl = document.getElementById("gooseEgg");
+    const btnEl = document.getElementById("gooseLockBtn");
+    if (gooseLocked) {
+      if (eggEl) { eggEl.style.opacity = "0.35"; eggEl.title = "Stashy ist eingesperrt 🥚"; eggEl.style.display = "block"; }
+      if (btnEl) btnEl.textContent = "🪿 Stashy freilassen";
+    } else {
+      if (eggEl) eggEl.style.display = "block";
+      setTimeout(() => { if (!gooseLocked && !isVisible) hatchFromEgg(); }, 90000);
+      scheduleNext();
+      schedulePauseReminder(); // Pause-Erinnerungen starten
+    }
+  }, 100);
+})();
+</script>
+
+<style>
+/* ── Goose animations ── */
+@keyframes eggPop   { 0%{transform:scale(0.4) translateY(20px);opacity:0} 100%{transform:scale(1) translateY(0);opacity:1} }
+@keyframes eggShake { 0%,100%{transform:rotate(0deg) translateY(0)} 15%{transform:rotate(-12deg) translateY(-3px)} 30%{transform:rotate(12deg) translateY(-5px)} 45%{transform:rotate(-10deg) translateY(-3px)} 60%{transform:rotate(10deg) translateY(-6px)} 75%{transform:rotate(-6deg) translateY(-2px)} 90%{transform:rotate(6deg) translateY(-4px)} }
+@keyframes shellLeft  { 0%{transform:translate(0,0) rotate(0deg);opacity:1} 100%{transform:translate(-28px,-24px) rotate(-55deg);opacity:0} }
+@keyframes shellRight { 0%{transform:translate(0,0) rotate(0deg);opacity:1} 100%{transform:translate(22px,-20px) rotate(50deg);opacity:0} }
+@keyframes stashyJump { 0%{transform:translateY(0) scale(1);opacity:0} 30%{transform:translateY(-22px) scale(1.1);opacity:1} 60%{transform:translateY(-10px) scale(1);opacity:1} 100%{transform:translateY(0) scale(1);opacity:1} }
+@keyframes gooseWiggle2 { 0%,100%{transform:rotate(0deg)} 30%{transform:rotate(-10deg)} 70%{transform:rotate(10deg)} }
+@keyframes flapWings {
+  0%,100% { transform: translateY(0) rotate(-2deg); }
+  20%     { transform: translateY(-6px) rotate(3deg); }
+  40%     { transform: translateY(-2px) rotate(-4deg); }
+  60%     { transform: translateY(-8px) rotate(4deg); }
+  80%     { transform: translateY(-3px) rotate(-3deg); }
+}
+@keyframes fallDown {
+  0%   { transform: translateY(0); }
+  100% { transform: translateY(var(--fall-dist, 300px)); }
+}
+@keyframes sleepZzz {
+  0%,100% { opacity: 0; transform: translate(0,0) scale(0.7); }
+  30%,70% { opacity: 1; transform: translate(6px,-10px) scale(1); }
+}
+@keyframes bubbleRise {
+  0%   { opacity:0; transform: translateY(0)    scale(0.5); }
+  15%  { opacity:1; transform: translateY(-4px)  scale(0.9); }
+  70%  { opacity:0.8; transform: translateY(-18px) scale(1.1); }
+  100% { opacity:0; transform: translateY(-28px) scale(0.7); }
+}
+.sleep-bubbles {
+  position: absolute;
+  bottom: 24px;
+  left: 28px;
+  pointer-events: none;
+}
+.sleep-bubble {
+  position: absolute;
+  font-family: 'Inter', sans-serif;
+  font-weight: 700;
+  color: var(--sage);
+  background: rgba(255,255,255,0.85);
+  border: 1.5px solid var(--sage-light);
+  border-radius: 50%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  opacity: 0;
+  animation: bubbleRise 2.4s ease-in-out infinite;
+}
+.sb1 { width:14px; height:14px; font-size:8px;  left:0;   bottom:0;  animation-delay:0s;    }
+.sb2 { width:18px; height:18px; font-size:10px; left:8px; bottom:6px; animation-delay:0.8s;  }
+.sb3 { width:22px; height:22px; font-size:13px; left:18px;bottom:14px;animation-delay:1.6s; }
+@keyframes hutGlow {
+  0%,100% { filter: drop-shadow(0 0 0px rgba(138,158,140,0)); }
+  50%     { filter: drop-shadow(0 0 8px rgba(138,158,140,0.6)); }
+}
+#gooseEgg.hatching #eggBody       { animation: eggShake 0.35s ease-in-out; }
+#gooseEgg.hatching #eggShellLeft  { animation: shellLeft  0.45s 0.28s ease-out forwards; }
+#gooseEgg.hatching #eggShellRight { animation: shellRight 0.45s 0.28s ease-out forwards; }
+#gooseEgg.hatching #eggStashy     { animation: stashyJump 0.5s 0.25s ease-out forwards; opacity:0; }
+
+#goose.dragging      { cursor: grabbing !important; z-index: 99999; }
+#goose.sleeping      { cursor: default; }
+#stashyHut.can-drop  { animation: hutGlow 0.8s ease-in-out infinite; }
+</style>
+
+<!-- ── HÜTTE (unten links) ── -->
+<div id="stashyHut" onclick="wakeStashy()" title="Stashy aufwecken 🏠" style="
+  position: fixed; bottom: 12px; left: 20px;
+  z-index: 9996; cursor: pointer; user-select: none;
+  filter: drop-shadow(0 3px 8px rgba(44,40,32,0.2));
+">
+  <svg width="80" height="72" viewBox="0 0 20 18" xmlns="http://www.w3.org/2000/svg" shape-rendering="crispEdges">
+    <!-- Dach -->
+    <rect x="2"  y="4"  width="16" height="2" fill="#8A9E8C"/>
+    <rect x="4"  y="2"  width="12" height="2" fill="#8A9E8C"/>
+    <rect x="6"  y="0"  width="8"  height="2" fill="#6B7D6D"/>
+    <rect x="3"  y="6"  width="14" height="1" fill="#6B7D6D"/>
+    <!-- Dach Schatten -->
+    <rect x="10" y="0"  width="4"  height="6" fill="#6B7D6D" opacity="0.3"/>
+    <!-- Wände -->
+    <rect x="2"  y="7"  width="16" height="9" fill="#C4B49A"/>
+    <rect x="2"  y="7"  width="3"  height="9" fill="#B8A088" opacity="0.5"/>
+    <!-- Tür (Eingang für Stashy) -->
+    <rect x="7"  y="10" width="6"  height="6" fill="#2E2B26" opacity="0.7"/>
+    <rect x="8"  y="11" width="4"  height="5" fill="#1A1815" opacity="0.8"/>
+    <!-- Türbogen -->
+    <rect x="7"  y="9"  width="6"  height="1" fill="#8A9E8C"/>
+    <rect x="7"  y="10" width="1"  height="1" fill="#8A9E8C"/>
+    <rect x="12" y="10" width="1"  height="1" fill="#8A9E8C"/>
+    <!-- Boden -->
+    <rect x="0"  y="16" width="20" height="2" fill="#8A9E8C" opacity="0.6"/>
+    <!-- Schild -->
+    <rect x="8"  y="5"  width="4"  height="2" fill="#EDE8DF"/>
+    <rect x="9"  y="5"  width="2"  height="2" fill="#DFC07A" opacity="0.6"/>
+    <!-- Zzz wenn schläft -->
+    <text id="hutZzz" x="14" y="7" font-size="3" fill="#6B7D6D" opacity="0" font-family="sans-serif" style="animation:sleepZzz 2s ease-in-out infinite;">z</text>
+  </svg>
+  <!-- Stashy schläft: Kopf lugt aus der Hütte raus -->
+  <div id="stashySleepingHead" style="display:none;position:absolute;bottom:14px;left:6px;">
+    <svg width="48" height="32" viewBox="0 0 12 8" xmlns="http://www.w3.org/2000/svg" shape-rendering="crispEdges">
+      <!-- Kopf liegt seitlich auf dem Boden -->
+      <rect x="0" y="3" width="7"  height="4" fill="#F5F1EA"/>
+      <rect x="1" y="2" width="6"  height="5" fill="#F5F1EA"/>
+      <rect x="0" y="4" width="8"  height="2" fill="#F5F1EA"/>
+      <!-- Hals angedeutet -->
+      <rect x="7" y="4" width="3"  height="2" fill="#F5F1EA"/>
+      <!-- Auge geschlossen (Strich) -->
+      <rect x="3" y="4" width="3"  height="1" fill="#2E2B26"/>
+      <!-- Wange -->
+      <rect x="4" y="5" width="2"  height="1" fill="#F5C4B3" opacity="0.85"/>
+      <!-- Schnabel -->
+      <rect x="0" y="4" width="2"  height="1" fill="#E8622A"/>
+      <rect x="0" y="5" width="1"  height="1" fill="#C44E1A"/>
+    </svg>
+    <!-- CSS Schlaf-Blasen -->
+    <div class="sleep-bubbles">
+      <div class="sleep-bubble sb1">z</div>
+      <div class="sleep-bubble sb2">z</div>
+      <div class="sleep-bubble sb3">Z</div>
+    </div>
+  </div>
+</div>
+
+<!-- ── EI (unten rechts) ── -->
+<div id="gooseEgg" onclick="gooseHatch()" title="Stashy schlüpfen lassen 🥚" style="
+  display:none; position:fixed; bottom:18px; right:22px;
+  z-index:9998; cursor:pointer; user-select:none; width:36px; height:56px;
+" onmouseenter="if(!this.classList.contains('hatching'))this.querySelector('#eggBody').style.transform='scale(1.1)'"
+   onmouseleave="this.querySelector('#eggBody').style.transform=''">
+  <svg width="72" height="80" viewBox="0 0 36 40" xmlns="http://www.w3.org/2000/svg" shape-rendering="crispEdges" style="overflow:visible;">
+    <g id="eggStashy" style="opacity:0;transform-origin:18px 20px;">
+      <rect x="13" y="16" width="8"  height="5" fill="#F5F1EA"/>
+      <rect x="12" y="17" width="10" height="3" fill="#F5F1EA"/>
+      <rect x="16" y="11" width="3"  height="5" fill="#F5F1EA"/>
+      <rect x="14" y="7"  width="6"  height="5" fill="#F5F1EA"/>
+      <rect x="13" y="8"  width="8"  height="3" fill="#F5F1EA"/>
+      <rect x="18" y="8"  width="2"  height="2" fill="#2E2B26"/>
+      <rect x="19" y="8"  width="1"  height="1" fill="white"/>
+      <rect x="18" y="10" width="2"  height="1" fill="#F5C4B3" opacity="0.85"/>
+      <rect x="20" y="9"  width="3"  height="1" fill="#E8622A"/>
+      <rect x="10" y="17" width="3"  height="2" fill="#E3DDD4"/>
+      <rect x="9"  y="16" width="2"  height="1" fill="#E3DDD4"/>
+      <rect x="23" y="17" width="3"  height="2" fill="#E3DDD4"/>
+      <rect x="25" y="16" width="2"  height="1" fill="#E3DDD4"/>
+      <rect x="14" y="21" width="2"  height="3" fill="#E8622A"/>
+      <rect x="12" y="24" width="4"  height="1" fill="#C44E1A"/>
+      <rect x="20" y="21" width="2"  height="3" fill="#E8622A"/>
+      <rect x="19" y="24" width="4"  height="1" fill="#C44E1A"/>
+    </g>
+    <g id="eggShellLeft" style="transform-origin:12px 20px;">
+      <rect x="5"  y="2"  width="8"  height="2"  fill="#EDE8DF"/>
+      <rect x="3"  y="4"  width="10" height="2"  fill="#EDE8DF"/>
+      <rect x="2"  y="6"  width="11" height="8"  fill="#EDE8DF"/>
+      <rect x="3"  y="14" width="10" height="2"  fill="#EDE8DF"/>
+      <rect x="5"  y="16" width="8"  height="2"  fill="#EDE8DF"/>
+      <rect x="7"  y="18" width="6"  height="2"  fill="#EDE8DF"/>
+      <rect x="4"  y="4"  width="3"  height="5"  fill="white" opacity="0.35"/>
+    </g>
+    <g id="eggShellRight" style="transform-origin:24px 20px;">
+      <rect x="18" y="2"  width="8"  height="2"  fill="#EDE8DF"/>
+      <rect x="18" y="4"  width="10" height="2"  fill="#EDE8DF"/>
+      <rect x="18" y="6"  width="11" height="8"  fill="#EDE8DF"/>
+      <rect x="18" y="14" width="10" height="2"  fill="#EDE8DF"/>
+      <rect x="18" y="16" width="8"  height="2"  fill="#EDE8DF"/>
+      <rect x="18" y="18" width="6"  height="2"  fill="#EDE8DF"/>
+    </g>
+    <g id="eggBody" style="transform-origin:18px 20px;transition:transform 0.15s;">
+      <rect x="11" y="0"  width="8"  height="2"  fill="#EDE8DF"/>
+      <rect x="9"  y="2"  width="12" height="2"  fill="#EDE8DF"/>
+      <rect x="7"  y="4"  width="14" height="2"  fill="#EDE8DF"/>
+      <rect x="6"  y="6"  width="16" height="10" fill="#EDE8DF"/>
+      <rect x="7"  y="16" width="14" height="2"  fill="#EDE8DF"/>
+      <rect x="9"  y="18" width="12" height="2"  fill="#EDE8DF"/>
+      <rect x="11" y="20" width="8"  height="2"  fill="#EDE8DF"/>
+      <rect x="8"  y="3"  width="4"  height="6"  fill="white" opacity="0.3"/>
+      <rect x="8"  y="3"  width="2"  height="3"  fill="white" opacity="0.3"/>
+      <rect x="16" y="8"  width="2"  height="1"  fill="#C4B49A"/>
+      <rect x="17" y="9"  width="1"  height="2"  fill="#C4B49A"/>
+      <rect x="15" y="10" width="2"  height="1"  fill="#C4B49A"/>
+      <rect x="18" y="7"  width="1"  height="1"  fill="#C4B49A"/>
+      <rect x="19" y="9"  width="2"  height="2"  fill="#2E2B26"/>
+      <rect x="20" y="9"  width="1"  height="1"  fill="white"/>
+    </g>
+  </svg>
+</div>
+
+<!-- ── AUSSCHALTEN BUTTON ── -->
+<button id="gooseLockBtn" onclick="gooseToggleLock()" style="
+  position:fixed; bottom:10px; left:50%; transform:translateX(-50%);
+  z-index:9997; background:rgba(46,43,38,0.18); color:rgba(46,43,38,0.55);
+  border:none; border-radius:999px; padding:4px 14px; font-size:10px;
+  font-family:'Inter',sans-serif; cursor:pointer; letter-spacing:0.04em;
+  transition:all 0.2s; backdrop-filter:blur(4px); white-space:nowrap;
+" onmouseenter="this.style.background='rgba(46,43,38,0.32)';this.style.color='rgba(46,43,38,0.8)'"
+   onmouseleave="this.style.background='rgba(46,43,38,0.18)';this.style.color='rgba(46,43,38,0.55)'"
+>🥚 Stashy ins Ei sperren</button>
+
+<script>
+// ── STASHY PHYSIK + DRAG + HUT ───────────────────────────────
+(function(){
+  const goose = document.getElementById("goose");
+  const hut   = document.getElementById("stashyHut");
+  if (!goose || !hut) return;
+
+  function showT(msg) { if (window._showToast) window._showToast(msg); }
+
+  // ── Physik-State ──
+  let px = 60, py = 0;        // position (px from left, py from top)
+  let vx = 0,  vy = 0;        // velocity px/frame
+  let inFlight    = false;     // true während Physik-Loop läuft
+  let isDragging  = false;
+  let isSleeping  = false;
+  let sleepTimeout = null;
+  let physicsRAF  = null;
+
+  const GRAVITY   = 0.28;     // px/frame² — sanfte Schwerkraft
+  const BOUNCE    = 0.35;     // Energieverlust beim Bodenkontakt
+  const FRICTION  = 0.992;    // Luftwiderstand pro Frame
+  const FLOOR_SPD = 1.2;      // Min-Geschwindigkeit beim Landen
+
+  function hutRect() { return hut.getBoundingClientRect(); }
+  function isOverHut(x, y) {
+    const r = hutRect();
+    return x >= r.left - 28 && x <= r.right + 28 && y >= r.top - 28 && y <= r.bottom + 28;
+  }
+
+  // ── Physik-Loop ──
+  function startPhysics() {
+    if (physicsRAF) cancelAnimationFrame(physicsRAF);
+    inFlight = true;
+
+    // Switch to top-based positioning for physics
+    const rect = goose.getBoundingClientRect();
+    px = rect.left;
+    py = rect.top;
+    goose.style.transition = "none";
+    goose.style.bottom     = "auto";
+    goose.style.left       = px + "px";
+    goose.style.top        = py + "px";
+
+    const W = () => window.innerWidth  - goose.offsetWidth  - 4;
+    const H = () => window.innerHeight - goose.offsetHeight - 2;
+
+    if (window.startFlapFrames) window.startFlapFrames(false);
+
+    let bounces = 0;
+    function step() {
+      if (!inFlight || isDragging) return;
+
+      // Apply gravity
+      vy += GRAVITY;
+
+      // Apply friction
+      vx *= FRICTION;
+      vy *= FRICTION;
+
+      // Move
+      px += vx;
+      py += vy;
+
+      const maxW = W(), maxH = H();
+
+      // Wall bounces (left/right)
+      if (px < 0)    { px = 0;    vx = Math.abs(vx) * BOUNCE; }
+      if (px > maxW) { px = maxW; vx = -Math.abs(vx) * BOUNCE; }
+
+      // Ceiling bounce
+      if (py < 0) { py = 0; vy = Math.abs(vy) * BOUNCE; }
+
+      // Floor — land!
+      if (py >= maxH) {
+        py = maxH;
+        bounces++;
+        // Tiny bounce or settle
+        if (Math.abs(vy) < FLOOR_SPD || bounces > 3) {
+          // Landed!
+          inFlight = false;
+          if (window.stopFlapFrames) window.stopFlapFrames();
+          // Switch back to bottom anchor
+          goose.style.top    = "auto";
+          goose.style.bottom = "0px";
+          goose.style.left   = px + "px";
+          window.currentX = px;
+          if (typeof resetFrames === "function") resetFrames();
+          if (window.pickBehavior) setTimeout(window.pickBehavior, 500);
+          return;
+        } else {
+          vy = -Math.abs(vy) * BOUNCE;
+        }
+      }
+
+      // Flap faster when moving up fast
+      if (window.startFlapFrames) {
+        const goingUp = vy < -2;
+        window.stopFlapFrames();
+        window.startFlapFrames(goingUp);
+      }
+
+      // Mirror based on horizontal direction
+      const svgWrap = goose.querySelector(".goose-svgs");
+      if (svgWrap) svgWrap.style.transform = vx < -0.3 ? "scaleX(-1)" : "scaleX(1)";
+
+      goose.style.left = px + "px";
+      goose.style.top  = py + "px";
+
+      physicsRAF = requestAnimationFrame(step);
+    }
+    physicsRAF = requestAnimationFrame(step);
+  }
+
+  function stopPhysics() {
+    inFlight = false;
+    if (physicsRAF) { cancelAnimationFrame(physicsRAF); physicsRAF = null; }
+  }
+
+  // ── Mousedown: grab ──
+  goose.addEventListener("mousedown", e => {
+    if (isSleeping || gooseLocked) return;
+    e.preventDefault();
+
+    // Stop everything
+    stopPhysics();
+    if (typeof stopWalk === "function")   stopWalk();
+    if (typeof stopSitBob === "function") stopSitBob();
+    if (window.behaviorTO) { clearTimeout(window.behaviorTO); window.behaviorTO = null; }
+
+    isDragging = true;
+    const rect = goose.getBoundingClientRect();
+    const offX = e.clientX - rect.left;
+    const offY = e.clientY - rect.top;
+
+    // Switch to top-based positioning
+    goose.style.transition = "none";
+    goose.style.bottom     = "auto";
+    goose.style.top        = rect.top + "px";
+    goose.style.left       = rect.left + "px";
+    px = rect.left;
+    py = rect.top;
+
+    goose.classList.add("dragging");
+    if (window.stopFlapFrames) window.stopFlapFrames();
+    if (window.startFlapFrames) window.startFlapFrames(false);
+    hut.classList.add("can-drop");
+
+    // Track velocity from mouse movement
+    let prevX = e.clientX, prevY = e.clientY, prevT = performance.now();
+    vx = 0; vy = 0;
+
+    function onMove(ev) {
+      const now = performance.now();
+      const dt  = Math.max(1, now - prevT);
+      // Smooth velocity (exponential moving average)
+      const scale = 0.4;
+      vx = vx * (1 - scale) + ((ev.clientX - prevX) / dt * 16) * scale;
+      vy = vy * (1 - scale) + ((ev.clientY - prevY) / dt * 16) * scale;
+      prevX = ev.clientX; prevY = ev.clientY; prevT = now;
+
+      px = ev.clientX - offX;
+      py = ev.clientY - offY;
+      goose.style.left = px + "px";
+      goose.style.top  = py + "px";
+
+      // Flap faster when being dragged upward fast
+      const goingUp = vy < -3;
+      if (window.stopFlapFrames && window.startFlapFrames) {
+        window.stopFlapFrames();
+        window.startFlapFrames(goingUp);
+      }
+    }
+
+    function onUp(ev) {
+      document.removeEventListener("mousemove", onMove);
+      document.removeEventListener("mouseup",   onUp);
+      isDragging = false;
+      goose.classList.remove("dragging");
+      hut.classList.remove("can-drop");
+      if (window.stopFlapFrames) window.stopFlapFrames();
+
+      if (isOverHut(ev.clientX, ev.clientY)) {
+        window.gooseFromHut = false; // Schläft jetzt wieder in der Hütte
+        enterHut();
+      } else {
+        // Clamp throw velocity so she doesn't go insane
+        const maxV = 22;
+        vx = Math.max(-maxV, Math.min(maxV, vx));
+        vy = Math.max(-maxV, Math.min(maxV, vy));
+        startPhysics();
+      }
+    }
+
+    document.addEventListener("mousemove", onMove);
+    document.addEventListener("mouseup",   onUp);
+  });
+
+  // ── Enter hut → sleep ──
+  function enterHut() {
+    isSleeping = true;
+    const hutR = hutRect();
+    if (typeof resetFrames === "function") resetFrames();
+
+    goose.style.transition = "left 0.45s ease-in, top 0.45s ease-in, opacity 0.3s 0.3s";
+    goose.style.left = (hutR.left + hutR.width/2 - 28) + "px";
+    goose.style.top  = (hutR.top  + hutR.height * 0.6 - 40) + "px";
+
+    setTimeout(() => {
+      goose.style.opacity = "0";
+      setTimeout(() => {
+        goose.style.display = "none";
+        goose.style.opacity = "1";
+        const sh = document.getElementById("stashySleepingHead");
+        if (sh) sh.style.display = "block";
+        const hz = document.getElementById("hutZzz");
+        if (hz) hz.style.opacity = "1";
+        hut.title = "Stashy schläft 💤 — anklicken zum Aufwecken";
+        showT("Stashy schläft 💤 Klick auf die Hütte zum Aufwecken");
+        // Min. 30 Minuten schlafen, dann von alleine aufstehen (max. 60 Min)
+        const sleepMs = 30 * 60 * 1000 + Math.random() * 30 * 60 * 1000;
+        sleepTimeout = setTimeout(wakeStashy, sleepMs);
+      }, 350);
+    }, 450);
+  }
+
+  // ── Wake ──
+  window.wakeStashy = function() {
+    if (!isSleeping) return;
+    clearTimeout(sleepTimeout);
+    isSleeping = false;
+    const sh = document.getElementById("stashySleepingHead");
+    if (sh) sh.style.display = "none";
+    const hz = document.getElementById("hutZzz");
+    if (hz) hz.style.opacity = "0";
+    hut.title = "Stashys Hütte 🏠";
+
+    const hutR = hutRect();
+    goose.style.transition = "none";
+    goose.style.display    = "block";
+    goose.style.top        = "auto";
+    goose.style.bottom     = "0px";
+    goose.style.left       = (hutR.left + hutR.width / 2) + "px";
+    window.currentX        = hutR.left + hutR.width / 2;
+
+    // Aus Hütte = bleibt dauerhaft sichtbar bis Ei-Sperre oder neue Hütte
+    window.gooseFromHut = true;
+
+    if (typeof resetFrames === "function") resetFrames();
+    if (window.showSpeech)   setTimeout(() => window.showSpeech("Guten Morgen! 🌞", 2000), 300);
+    if (window.pickBehavior) setTimeout(window.pickBehavior, 600);
+  };
+
+  window._gooseSleeping = () => isSleeping;
+})();
+</script>
+
+<!-- ── Footer ── -->
+<div style="text-align:center;padding:1.5rem 0 2.5rem;font-size:11px;color:var(--ink3);letter-spacing:0.06em;opacity:0.7;">
+  made by Nils H. &nbsp;·&nbsp; all rights reserved
+</div>
+
+<script>
+// ── Profil-Logik ──────────────────────────────────────────────
+(function() {
+  const PROFILE_KEY = "stashify_profile_img";
+
+  function getStoredImg() { return localStorage.getItem(PROFILE_KEY) || ""; }
+
+  function applyAvatar(dataUrl) {
+    const initial = document.getElementById("profileInitial");
+    const img     = document.getElementById("profileAvatarImg");
+    const initialL= document.getElementById("profileInitialLarge");
+    const imgL    = document.getElementById("profileAvatarImgLarge");
+    const removeBtn = document.getElementById("profileRemoveBtn");
+
+    if (dataUrl) {
+      if (img)  { img.src  = dataUrl; img.style.display  = "block"; }
+      if (imgL) { imgL.src = dataUrl; imgL.style.display = "block"; }
+      if (initial)  initial.style.display  = "none";
+      if (initialL) initialL.style.display = "none";
+      if (removeBtn) { removeBtn.style.display = "flex"; }
+    } else {
+      if (img)  img.style.display  = "none";
+      if (imgL) imgL.style.display = "none";
+      if (initial)  initial.style.display  = "";
+      if (initialL) initialL.style.display = "";
+      if (removeBtn) removeBtn.style.display = "none";
+    }
+  }
+
+  function setInitial(email) {
+    const letter = (email || "?")[0].toUpperCase();
+    const el  = document.getElementById("profileInitial");
+    const elL = document.getElementById("profileInitialLarge");
+    if (el)  el.textContent  = letter;
+    if (elL) elL.textContent = letter;
+  }
+
+  // Popup toggle
+  window.toggleProfilePopup = function() {
+    const popup = document.getElementById("profilePopup");
+    const isOpen = popup.style.display === "block";
+    popup.style.display = isOpen ? "none" : "block";
+  };
+
+  // Close popup when clicking outside
+  document.addEventListener("click", e => {
+    const popup = document.getElementById("profilePopup");
+    const btn   = document.getElementById("profileAvatarBtn");
+    if (popup && btn && !popup.contains(e.target) && !btn.contains(e.target)) {
+      popup.style.display = "none";
+    }
+  });
+
+  // File input change
+  document.getElementById("profileImgInput").addEventListener("change", function() {
+    const file = this.files[0];
+    if (!file) return;
+    const reader = new FileReader();
+    reader.onload = ev => {
+      // Resize to max 200x200 to keep it small
+      const img = new Image();
+      img.onload = () => {
+        const size = 200;
+        const canvas = document.createElement("canvas");
+        canvas.width = canvas.height = size;
+        const ctx = canvas.getContext("2d");
+        const scale = Math.max(size / img.width, size / img.height);
+        const w = img.width * scale, h = img.height * scale;
+        ctx.drawImage(img, (size - w) / 2, (size - h) / 2, w, h);
+        const dataUrl = canvas.toDataURL("image/jpeg", 0.85);
+        localStorage.setItem(PROFILE_KEY, dataUrl);
+        applyAvatar(dataUrl);
+        // Save to Firebase so all devices + notes show the image
+        if (window._saveProfileToFirebase && window._currentUid) {
+          window._saveProfileToFirebase(window._currentUid, dataUrl);
+        }
+        if (window._showToast) window._showToast("✓ Profilbild gespeichert");
+      };
+      img.src = ev.target.result;
+    };
+    reader.readAsDataURL(file);
+    this.value = "";
+  });
+
+  // Remove image
+  window.removeProfileImage = function() {
+    localStorage.removeItem(PROFILE_KEY);
+    applyAvatar("");
+    if (window._removeProfileFromFirebase && window._currentUid) {
+      window._removeProfileFromFirebase(window._currentUid);
+    }
+    if (window._showToast) window._showToast("Profilbild entfernt");
+  };
+
+  // Called after login with user email and uid
+  window.initProfile = function(email, uid) {
+    window._currentUid = uid;
+    setInitial(email);
+    const emailEl = document.getElementById("profileEmailDisplay");
+    if (emailEl) emailEl.textContent = email;
+    // Try Firebase profile first, then localStorage fallback
+    const profiles = window._profilesCache || {};
+    const firebaseImg = uid && profiles[uid];
+    const localImg    = getStoredImg();
+    const imgToUse    = firebaseImg || localImg || "";
+    if (imgToUse) localStorage.setItem(PROFILE_KEY, imgToUse);
+    applyAvatar(imgToUse);
+    const avatarBtn = document.getElementById("profileAvatarBtn");
+    if (avatarBtn) avatarBtn.style.display = "block";
+  };
+
+  // Called on logout
+  window.resetProfile = function() {
+    const avatarBtn = document.getElementById("profileAvatarBtn");
+    if (avatarBtn) avatarBtn.style.display = "none";
+    const popup = document.getElementById("profilePopup");
+    if (popup) popup.style.display = "none";
+  };
+
+  // On load apply stored image immediately
+  applyAvatar(getStoredImg());
+})();
+</script>
+
+</body>
+</html>
