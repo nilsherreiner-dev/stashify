@@ -156,25 +156,37 @@ header {
   color: var(--sage-dark);
 }
 
-/* ── Notizen collapsed ── */
+/* ── Notizen Sidebar (fixed am linken Rand) ── */
 .notes-sidebar {
+  width: 280px;
+  border-right: 1px solid var(--border2);
+  background: var(--surface);
+  display: flex;
+  flex-direction: column;
+  height: calc(100vh - 60px);
+  position: fixed;
+  top: 60px;
+  left: 0;
+  z-index: 40;
+  overflow: hidden;
   transition: width 0.25s ease;
+  box-shadow: 2px 0 12px rgba(44,40,32,0.06);
 }
+
+/* ── Collapsed Tab ── */
 .notes-sidebar.collapsed {
   width: 20px;
   overflow: visible;
   border-right: none;
   background: transparent;
+  box-shadow: none;
 }
 .notes-sidebar.collapsed .notes-feed,
 .notes-sidebar.collapsed .notes-compose,
 .notes-sidebar.collapsed .notes-header {
   display: none !important;
 }
-/* Clean vertical tab when collapsed */
-.notes-sidebar.collapsed .notes-tab {
-  display: flex !important;
-}
+.notes-sidebar.collapsed .notes-tab { display: flex !important; }
 .notes-tab {
   display: none;
   position: absolute;
@@ -182,7 +194,6 @@ header {
   top: 50%;
   transform: translateY(-50%);
   writing-mode: vertical-rl;
-  text-orientation: mixed;
   background: var(--surface);
   border: 1px solid var(--border2);
   border-left: none;
@@ -196,33 +207,21 @@ header {
   white-space: nowrap;
   box-shadow: 2px 0 8px rgba(44,40,32,0.08);
   user-select: none;
-  transition: background 0.12s, color 0.12s;
   gap: 6px;
   align-items: center;
+  transition: background 0.12s, color 0.12s;
 }
-.notes-tab:hover {
-  background: var(--creme2);
-  color: var(--sage-dark);
-}
+.notes-tab:hover { background: var(--creme2); color: var(--sage-dark); }
 
 /* ── Main Layout ── */
+.app-layout { display: block; }
 
-/* ── Notizen Sidebar ── */
-.notes-sidebar {
-  width: 280px;
-  flex-shrink: 0;
-  border-right: 1px solid var(--border2);
-  background: var(--surface);
-  display: flex;
-  flex-direction: column;
-  height: calc(100vh - 60px);
-  position: fixed;
-  top: 60px;
-  left: 0;
-  z-index: 40;
-  overflow: hidden;
-  transition: width 0.25s ease;
-  box-shadow: 2px 0 12px rgba(44,40,32,0.08);
+/* ── Main content — verschoben um Sidebar-Breite ── */
+main {
+  padding: 1.75rem 2rem;
+  margin-left: 280px;
+  transition: margin-left 0.25s ease;
+  min-width: 0;
 }
 .notes-header {
   padding: 14px 14px 10px;
@@ -326,33 +325,6 @@ header {
 .note-empty {
   text-align: center; color: var(--ink3); font-size: 12px;
   padding: 2rem 1rem; font-style: italic;
-}
-
-/* ── Main content area ── */
-main {
-  flex: 1;
-  min-width: 0;
-  padding: 1.75rem 2rem;
-  margin-left: 280px;
-  transition: margin-left 0.25s ease;
-}
-.notes-sidebar.collapsed ~ main,
-body.notes-collapsed main {
-  margin-left: 20px;
-}
-
-.notes-sidebar.collapsed {
-  width: 20px;
-  overflow: visible;
-  border-right: none;
-  background: transparent;
-  box-shadow: none;
-}
-
-/* app-layout is just a wrapper now */
-.app-layout {
-  display: block;
-  min-height: calc(100vh - 60px);
 }
 
 /* ── Buttons ── */
@@ -1473,7 +1445,7 @@ textarea {
 <div class="app-layout">
 
 <!-- ── Notizen Sidebar ── -->
-<aside class="notes-sidebar" id="notesSidebar" style="position:relative;">
+<aside class="notes-sidebar" id="notesSidebar">
   <!-- Collapsed tab (only visible when sidebar is closed) -->
   <div class="notes-tab" onclick="toggleNotesSidebar()" title="Chat öffnen">
     <i class="ti ti-message-circle" style="font-size:12px;writing-mode:horizontal-tb;"></i>
