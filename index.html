@@ -1819,6 +1819,8 @@ window.toggleNotesSidebar = function() {
       : "ti ti-layout-sidebar-left-collapse";
   }
 };
+
+window.sendNote = function() {
   const input = document.getElementById("notesInput");
   const text  = (input?.value || "").trim();
   if (!text || !currentUserUid) return;
