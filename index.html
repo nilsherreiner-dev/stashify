@@ -206,12 +206,6 @@ header {
 }
 
 /* ── Main Layout ── */
-.app-layout {
-  display: flex;
-  align-items: flex-start;
-  gap: 0;
-  min-height: calc(100vh - 60px);
-}
 
 /* ── Notizen Sidebar ── */
 .notes-sidebar {
@@ -222,10 +216,13 @@ header {
   display: flex;
   flex-direction: column;
   height: calc(100vh - 60px);
-  position: sticky;
+  position: fixed;
   top: 60px;
+  left: 0;
+  z-index: 40;
   overflow: hidden;
   transition: width 0.25s ease;
+  box-shadow: 2px 0 12px rgba(44,40,32,0.08);
 }
 .notes-header {
   padding: 14px 14px 10px;
@@ -336,6 +333,26 @@ main {
   flex: 1;
   min-width: 0;
   padding: 1.75rem 2rem;
+  margin-left: 280px;
+  transition: margin-left 0.25s ease;
+}
+.notes-sidebar.collapsed ~ main,
+body.notes-collapsed main {
+  margin-left: 20px;
+}
+
+.notes-sidebar.collapsed {
+  width: 20px;
+  overflow: visible;
+  border-right: none;
+  background: transparent;
+  box-shadow: none;
+}
+
+/* app-layout is just a wrapper now */
+.app-layout {
+  display: block;
+  min-height: calc(100vh - 60px);
 }
 
 /* ── Buttons ── */
@@ -1850,6 +1867,8 @@ window.toggleNotesSidebar = function() {
   const sidebar = document.getElementById("notesSidebar");
   const collapsed = sidebar.classList.toggle("collapsed");
   localStorage.setItem("stashify_notes_collapsed", collapsed ? "1" : "0");
+  const main = document.querySelector("main");
+  if (main) main.style.marginLeft = collapsed ? "20px" : "280px";
 };
 
 window.sendNote = function() {
@@ -2930,8 +2949,11 @@ renderLegend();
 renderGrid();
 // Restore sidebar state
 setTimeout(() => {
-  if (localStorage.getItem("stashify_notes_collapsed") === "1") {
+  const collapsed = localStorage.getItem("stashify_notes_collapsed") === "1";
+  if (collapsed) {
     document.getElementById("notesSidebar")?.classList.add("collapsed");
+    const main = document.querySelector("main");
+    if (main) main.style.marginLeft = "20px";
   }
 }, 0);
 </script>
