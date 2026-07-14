@@ -222,7 +222,116 @@ main {
   margin-left: 280px;
   transition: margin-left 0.25s ease;
   min-width: 0;
+  margin-right: 260px;
 }
+
+/* ── Dokumente Sidebar (fixed rechts) ── */
+.docs-sidebar {
+  width: 260px;
+  border-left: 1px solid var(--border2);
+  background: var(--surface);
+  display: flex;
+  flex-direction: column;
+  height: calc(100vh - 60px);
+  position: fixed;
+  top: 60px;
+  right: 0;
+  z-index: 40;
+  overflow: hidden;
+  transition: width 0.25s ease;
+  box-shadow: -2px 0 12px rgba(44,40,32,0.06);
+}
+.docs-sidebar.collapsed {
+  width: 20px;
+  overflow: visible;
+  border-left: none;
+  background: transparent;
+  box-shadow: none;
+}
+.docs-sidebar.collapsed .docs-feed,
+.docs-sidebar.collapsed .docs-compose,
+.docs-sidebar.collapsed .docs-header { display: none !important; }
+.docs-sidebar.collapsed .docs-tab { display: flex !important; }
+.docs-tab {
+  display: none;
+  position: absolute;
+  right: 0; top: 50%;
+  transform: translateY(-50%);
+  writing-mode: vertical-rl;
+  background: var(--surface);
+  border: 1px solid var(--border2);
+  border-right: none;
+  border-radius: 6px 0 0 6px;
+  padding: 12px 6px;
+  cursor: pointer;
+  font-size: 10px; letter-spacing: 0.1em; text-transform: uppercase;
+  color: var(--ink3); white-space: nowrap;
+  box-shadow: -2px 0 8px rgba(44,40,32,0.08);
+  user-select: none; gap: 6px; align-items: center;
+  transition: background 0.12s, color 0.12s;
+}
+.docs-tab:hover { background: var(--creme2); color: var(--clay); }
+.docs-header {
+  padding: 14px 14px 10px;
+  border-bottom: 1px solid var(--border2);
+  flex-shrink: 0;
+}
+.docs-header-title {
+  font-size: 12px; letter-spacing: 0.08em; text-transform: uppercase;
+  color: var(--ink3); display: flex; align-items: center; gap: 6px;
+}
+.docs-feed {
+  flex: 1; overflow-y: auto; padding: 10px;
+  display: flex; flex-direction: column; gap: 6px;
+}
+.docs-feed::-webkit-scrollbar { width: 4px; }
+.docs-feed::-webkit-scrollbar-thumb { background: var(--border2); border-radius: 2px; }
+.doc-item {
+  background: var(--creme2); border: 1px solid var(--border2);
+  border-radius: 8px; padding: 9px 11px;
+  display: flex; align-items: flex-start; gap: 8px; position: relative;
+}
+.doc-item:hover .doc-delete { display: flex; }
+.doc-icon { font-size: 16px; flex-shrink: 0; margin-top: 1px; }
+.doc-info { flex: 1; min-width: 0; }
+.doc-label { font-size: 11px; color: var(--ink2); margin-bottom: 2px; font-weight: 600; }
+.doc-link {
+  font-size: 11px; color: var(--clay); text-decoration: none;
+  overflow: hidden; text-overflow: ellipsis; white-space: nowrap;
+  display: block;
+}
+.doc-link:hover { text-decoration: underline; }
+.doc-delete {
+  display: none; background: none; border: none; cursor: pointer;
+  font-size: 11px; color: var(--ink3); padding: 0; height: auto; line-height: 1;
+  flex-shrink: 0;
+}
+.doc-delete:hover { color: #C0604A; background: none; box-shadow: none; border: none; transform: none; }
+.doc-empty {
+  text-align: center; color: var(--ink3); font-size: 12px;
+  padding: 2rem 0.75rem; font-style: italic;
+}
+.docs-compose {
+  padding: 10px; border-top: 1px solid var(--border2);
+  flex-shrink: 0; background: var(--surface);
+  display: flex; flex-direction: column; gap: 6px;
+}
+.docs-compose input {
+  width: 100%; height: 34px; padding: 0 10px;
+  border: 1px solid var(--border2); border-radius: var(--radius);
+  font-size: 12px; font-family: var(--font-body); color: var(--ink);
+  background: var(--creme2); outline: none;
+}
+.docs-compose input:focus { border-color: var(--clay); box-shadow: 0 0 0 2px rgba(184,149,106,0.15); }
+.docs-add-btn {
+  height: 32px; background: var(--clay); color: white;
+  border: none; border-radius: var(--radius); cursor: pointer;
+  font-size: 12px; font-family: var(--font-body);
+  display: flex; align-items: center; justify-content: center; gap: 5px;
+  transition: background 0.12s;
+}
+.docs-add-btn:hover { background: #A0784E; transform: none; box-shadow: none; }
+
 .notes-header {
   padding: 14px 14px 10px;
   border-bottom: 1px solid var(--border2);
@@ -1504,6 +1613,34 @@ textarea {
   </div>
 </main>
 
+<!-- ── Dokumente Sidebar ── -->
+<aside class="docs-sidebar" id="docsSidebar">
+  <div class="docs-tab" onclick="toggleDocsSidebar()" title="Dokumente öffnen">
+    <i class="ti ti-link" style="font-size:12px;writing-mode:horizontal-tb;"></i>
+    Docs
+  </div>
+  <div class="docs-header">
+    <div class="docs-header-title">
+      <i class="ti ti-link" style="font-size:14px;"></i>
+      Dokumente
+      <button onclick="toggleDocsSidebar()" title="Schließen" style="margin-left:auto;background:none;border:none;cursor:pointer;color:var(--ink3);padding:2px 4px;height:auto;font-size:16px;line-height:1;display:flex;align-items:center;">
+        <i class="ti ti-layout-sidebar-right-collapse"></i>
+      </button>
+    </div>
+  </div>
+  <div class="docs-feed" id="docsFeed">
+    <div class="doc-empty">Noch keine Dokumente. Link hinzufügen 👇</div>
+  </div>
+  <div class="docs-compose" id="docsCompose" style="display:none;">
+    <input id="docsLabelInput" placeholder="Name (z.B. Order 50030511)" maxlength="60" />
+    <input id="docsUrlInput" placeholder="Link (https://…)" type="url"
+      onkeydown="if(event.key==='Enter')window.addDoc()" />
+    <button class="docs-add-btn" onclick="window.addDoc()">
+      <i class="ti ti-plus"></i> Link hinzufügen
+    </button>
+  </div>
+</aside>
+
 </div><!-- end app-layout -->
 
 <div id="modalBg" class="modal-bg" style="display:none;" role="dialog" aria-modal="true">
@@ -1600,6 +1737,7 @@ const rowConfigRef = ref(db, "lager/rowConfig");
 const geminiKeyRef = ref(db, "lager/settings/geminiKey");
 const notesRef     = ref(db, "lager/notes");
 const profilesRef  = ref(db, "lager/profiles");
+const docsRef      = ref(db, "lager/docs");
 
 // ── App State ─────────────────────────────────────────────────
 const ROWS_DEFAULT = [
@@ -1713,6 +1851,8 @@ onAuthStateChanged(auth, user => {
     if (window.initProfile) window.initProfile(user.email, user.uid);
     const compose = document.getElementById("notesCompose");
     if (compose) compose.style.display = "block";
+    const docsCompose = document.getElementById("docsCompose");
+    if (docsCompose) docsCompose.style.display = "flex";
     startDataListeners();
     renderLegend();
     showToast("Willkommen, " + user.email.split("@")[0] + " 👋");
@@ -1788,6 +1928,11 @@ function startDataListeners() {
 
   window._saveProfileToFirebase = (uid, dataUrl) => set(ref(db, "lager/profiles/" + uid), dataUrl);
   window._removeProfileFromFirebase = (uid) => set(ref(db, "lager/profiles/" + uid), null);
+
+  // Docs listener
+  onValue(docsRef, snap => {
+    renderDocs(snap.val() || {});
+  });
 }
 
 // ── Notizen ───────────────────────────────────────────────────
@@ -1841,6 +1986,57 @@ window.toggleNotesSidebar = function() {
   localStorage.setItem("stashify_notes_collapsed", collapsed ? "1" : "0");
   const main = document.querySelector("main");
   if (main) main.style.marginLeft = collapsed ? "20px" : "280px";
+};
+
+// ── Dokumente Sidebar ─────────────────────────────────────────
+function renderDocs(docs) {
+  const feed = document.getElementById("docsFeed");
+  if (!feed) return;
+  const entries = Object.entries(docs).sort((a,b) => (a[1].ts||0) - (b[1].ts||0));
+  if (!entries.length) {
+    feed.innerHTML = '<div class="doc-empty">Noch keine Dokumente. Link hinzufügen 👇</div>';
+    return;
+  }
+  feed.innerHTML = entries.map(([id, d]) => {
+    const icon = d.url?.includes("excel") || d.url?.includes("xlsx") || d.url?.includes("spreadsheet") ? "📊"
+               : d.url?.includes("docs.google") || d.url?.includes("docx") ? "📄"
+               : d.url?.includes("sharepoint") || d.url?.includes("onedrive") ? "📁"
+               : "🔗";
+    const hostname = (() => { try { return new URL(d.url).hostname.replace("www.",""); } catch(e) { return d.url; } })();
+    return `
+      <div class="doc-item">
+        <span class="doc-icon">${icon}</span>
+        <div class="doc-info">
+          ${d.label ? `<div class="doc-label">${escHtml(d.label)}</div>` : ""}
+          <a class="doc-link" href="${escHtml(d.url)}" target="_blank" rel="noopener" title="${escHtml(d.url)}">${hostname}</a>
+        </div>
+        <button class="doc-delete" onclick="window.deleteDoc('${id}')" title="Löschen">✕</button>
+      </div>`;
+  }).join("");
+}
+
+window.addDoc = function() {
+  const label = document.getElementById("docsLabelInput")?.value.trim() || "";
+  const url   = document.getElementById("docsUrlInput")?.value.trim();
+  if (!url) { showToast("Bitte einen Link eingeben"); return; }
+  const fullUrl = url.startsWith("http") ? url : "https://" + url;
+  const id = Date.now() + "_" + Math.random().toString(36).slice(2,5);
+  set(ref(db, "lager/docs/" + id), { label, url: fullUrl, ts: Date.now(), uid: currentUserUid || "" });
+  document.getElementById("docsLabelInput").value = "";
+  document.getElementById("docsUrlInput").value = "";
+  showToast("✓ Link gespeichert");
+};
+
+window.deleteDoc = function(id) {
+  remove(ref(db, "lager/docs/" + id));
+};
+
+window.toggleDocsSidebar = function() {
+  const sidebar = document.getElementById("docsSidebar");
+  const collapsed = sidebar.classList.toggle("collapsed");
+  localStorage.setItem("stashify_docs_collapsed", collapsed ? "1" : "0");
+  const main = document.querySelector("main");
+  if (main) main.style.marginRight = collapsed ? "20px" : "260px";
 };
 
 window.sendNote = function() {
@@ -2919,13 +3115,19 @@ document.head.appendChild(style);
 showStatus(false);
 renderLegend();
 renderGrid();
-// Restore sidebar state
+// Restore sidebar states
 setTimeout(() => {
-  const collapsed = localStorage.getItem("stashify_notes_collapsed") === "1";
-  if (collapsed) {
+  const notesColl = localStorage.getItem("stashify_notes_collapsed") === "1";
+  if (notesColl) {
     document.getElementById("notesSidebar")?.classList.add("collapsed");
     const main = document.querySelector("main");
     if (main) main.style.marginLeft = "20px";
+  }
+  const docsColl = localStorage.getItem("stashify_docs_collapsed") === "1";
+  if (docsColl) {
+    document.getElementById("docsSidebar")?.classList.add("collapsed");
+    const main = document.querySelector("main");
+    if (main) main.style.marginRight = "20px";
   }
 }, 0);
 </script>
