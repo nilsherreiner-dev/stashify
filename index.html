@@ -1840,11 +1840,12 @@ function hideLogin() {
 }
 
 // ── TOTP Logic ────────────────────────────────────────────────
-let _pendingUser = null; // Firebase user waiting for TOTP
+let _pendingUser  = null;
+let _totpVerified = false; // true = TOTP bereits in dieser Session bestätigt
 
 function totpRef(uid) { return ref(db, "lager/totp/" + uid); }
 
-async function totpGetSecret(uid) {
+async function totpGetData(uid) {
   return new Promise(resolve => {
     onValue(totpRef(uid), snap => resolve(snap.val()), { onlyOnce: true });
   });
@@ -1853,106 +1854,109 @@ async function totpGetSecret(uid) {
 function totpVerifyToken(secret, code) {
   if (!window.OTPAuth) return false;
   try {
-    const totp = new OTPAuth.TOTP({ secret: OTPAuth.Secret.fromBase32(secret), digits: 6, period: 30 });
-    // Allow ±1 window (30s drift)
+    const totp = new OTPAuth.TOTP({
+      secret: OTPAuth.Secret.fromBase32(secret.replace(/\s/g,"")),
+      digits: 6, period: 30, algorithm: "SHA1"
+    });
     for (let delta = -1; delta <= 1; delta++) {
-      const ts   = Math.floor(Date.now() / 1000) + delta * 30;
-      const expected = totp.generate({ timestamp: ts * 1000 });
-      if (expected === code.trim()) return true;
+      const ts = Math.floor(Date.now() / 1000) + delta * 30;
+      if (totp.generate({ timestamp: ts * 1000 }) === code.trim()) return true;
     }
     return false;
-  } catch(e) { return false; }
+  } catch(e) { console.error("TOTP error:", e); return false; }
+}
+
+async function ensureOTPAuth() {
+  if (window.OTPAuth) return;
+  await new Promise((res, rej) => {
+    const s = document.createElement("script");
+    s.src = "https://cdn.jsdelivr.net/npm/otpauth@9.3.6/dist/otpauth.umd.min.js";
+    s.onload = res; s.onerror = rej;
+    document.head.appendChild(s);
+  });
 }
 
 async function totpChallenge(user) {
   _pendingUser = user;
-  const secret = await totpGetSecret(user.uid);
-  const screen = document.getElementById("totpScreen");
-  screen.style.display = "flex";
 
-  if (!secret) {
-    // First time: generate secret and show QR
-    if (!window.OTPAuth) { await new Promise(r => setTimeout(r, 800)); }
+  await ensureOTPAuth();
+  const totpData = await totpGetData(user.uid);
+  const screen   = document.getElementById("totpScreen");
+  screen.style.display = "flex";
+  hideLogin();
+
+  if (!totpData || !totpData.confirmed) {
+    // Erste Einrichtung
     const newSecret = new OTPAuth.Secret({ size: 20 });
     const base32    = newSecret.base32;
-
-    // Temporarily save to Firebase (unconfirmed flag)
     await set(totpRef(user.uid), { secret: base32, confirmed: false });
 
-    const email    = user.email;
-    const issuer   = "Stashify";
-    const uri      = `otpauth://totp/${encodeURIComponent(issuer)}:${encodeURIComponent(email)}?secret=${base32}&issuer=${encodeURIComponent(issuer)}&algorithm=SHA1&digits=6&period=30`;
+    const uri = `otpauth://totp/Stashify:${encodeURIComponent(user.email)}?secret=${base32}&issuer=Stashify&algorithm=SHA1&digits=6&period=30`;
 
-    // Show setup screen
     document.getElementById("totpSetup").style.display  = "block";
     document.getElementById("totpVerify").style.display = "none";
+    document.getElementById("totpSetupError").style.display = "none";
+    document.getElementById("totpSetupCode").value = "";
 
-    // Generate QR
     const qrWrap = document.getElementById("totpQrWrap");
     qrWrap.innerHTML = "";
     new QRCode(qrWrap, { text: uri, width: 180, height: 180, correctLevel: QRCode.CorrectLevel.M });
     document.getElementById("totpSecretDisplay").textContent = base32.match(/.{1,4}/g).join(" ");
-    document.getElementById("totpSetupCode").value = "";
-    document.getElementById("totpSetupCode").focus();
-
-  } else if (secret.confirmed === false) {
-    // Setup started but not confirmed — show setup again
-    await totpChallenge(user);
+    setTimeout(() => document.getElementById("totpSetupCode").focus(), 200);
   } else {
-    // Normal verify
+    // Code abfragen
     document.getElementById("totpSetup").style.display  = "none";
     document.getElementById("totpVerify").style.display = "block";
+    document.getElementById("totpVerifyError").style.display = "none";
     document.getElementById("totpCode").value = "";
-    setTimeout(() => document.getElementById("totpCode").focus(), 100);
+    setTimeout(() => document.getElementById("totpCode").focus(), 200);
   }
 }
 
 window.totpConfirmSetup = async () => {
-  const code = document.getElementById("totpSetupCode").value.trim();
+  const code  = document.getElementById("totpSetupCode").value.replace(/\s/g,"");
   const errEl = document.getElementById("totpSetupError");
+  errEl.style.display = "none";
   if (code.length !== 6) { errEl.textContent = "Bitte 6-stelligen Code eingeben."; errEl.style.display = "block"; return; }
 
-  const snap = await new Promise(r => onValue(totpRef(_pendingUser.uid), r, { onlyOnce: true }));
-  const secret = snap.val()?.secret;
-
-  if (!secret || !totpVerifyToken(secret, code)) {
+  const totpData = await totpGetData(_pendingUser.uid);
+  if (!totpData?.secret || !totpVerifyToken(totpData.secret, code)) {
     errEl.textContent = "Code falsch — bitte nochmal versuchen.";
     errEl.style.display = "block";
     return;
   }
 
-  // Confirm the secret
-  await set(totpRef(_pendingUser.uid), { secret, confirmed: true });
-  errEl.style.display = "none";
+  await set(totpRef(_pendingUser.uid), { secret: totpData.secret, confirmed: true });
   document.getElementById("totpScreen").style.display = "none";
+  _totpVerified = true;
   showToast("✓ Google Authenticator aktiviert!");
   completLogin(_pendingUser);
 };
 
 window.totpVerifyCode = async () => {
-  const code  = document.getElementById("totpCode").value.trim();
+  const code  = document.getElementById("totpCode").value.replace(/\s/g,"");
   const errEl = document.getElementById("totpVerifyError");
+  errEl.style.display = "none";
   if (code.length !== 6) { errEl.textContent = "Bitte 6-stelligen Code eingeben."; errEl.style.display = "block"; return; }
 
-  const snap   = await new Promise(r => onValue(totpRef(_pendingUser.uid), r, { onlyOnce: true }));
-  const secret = snap.val()?.secret;
-
-  if (!secret || !totpVerifyToken(secret, code)) {
-    errEl.textContent = "Code falsch oder abgelaufen. Nochmal versuchen.";
+  const totpData = await totpGetData(_pendingUser.uid);
+  if (!totpData?.secret || !totpVerifyToken(totpData.secret, code)) {
+    errEl.textContent = "Code falsch oder abgelaufen.";
     errEl.style.display = "block";
     document.getElementById("totpCode").value = "";
     document.getElementById("totpCode").focus();
     return;
   }
 
-  errEl.style.display = "none";
   document.getElementById("totpScreen").style.display = "none";
+  _totpVerified = true;
   completLogin(_pendingUser);
 };
 
 window.totpCancel = async () => {
+  _pendingUser  = null;
+  _totpVerified = false;
   await signOut(auth);
-  _pendingUser = null;
   document.getElementById("totpScreen").style.display = "none";
   showLogin();
 };
@@ -1962,7 +1966,6 @@ function completLogin(user) {
   hideLogin();
   currentUserUid   = user.uid;
   currentUserEmail = user.email;
-  document.getElementById("userBadge") && (document.getElementById("userBadge").style.display = "flex");
   document.getElementById("logoutBtn").style.display = "flex";
   if (window.initProfile) window.initProfile(user.email, user.uid);
   const compose = document.getElementById("notesCompose");
@@ -1988,24 +1991,26 @@ document.getElementById("loginBtn").onclick = async () => {
   btn.disabled = true;
   btn.innerHTML = '<i class="ti ti-loader-2" style="animation:spin 1s linear infinite"></i> Anmelden …';
   errEl.style.display = "none";
+  _totpVerified = false;
 
   try {
-    const cred = await signInWithEmailAndPassword(auth, email, password);
-    // Don't call completLogin here — intercept with TOTP
-    btn.disabled = false;
-    btn.innerHTML = '<i class="ti ti-login"></i> Anmelden';
+    await signInWithEmailAndPassword(auth, email, password);
+    // onAuthStateChanged übernimmt ab hier
   } catch (err) {
     btn.disabled = false;
     btn.innerHTML = '<i class="ti ti-login"></i> Anmelden';
     const msgs = {
-      "auth/invalid-credential":    "E-Mail oder Passwort falsch.",
-      "auth/user-not-found":        "Kein Konto mit dieser E-Mail.",
-      "auth/wrong-password":        "Passwort falsch.",
-      "auth/too-many-requests":     "Zu viele Versuche. Kurz warten.",
-      "auth/invalid-email":         "Ungültige E-Mail-Adresse.",
+      "auth/invalid-credential": "E-Mail oder Passwort falsch.",
+      "auth/user-not-found":     "Kein Konto mit dieser E-Mail.",
+      "auth/wrong-password":     "Passwort falsch.",
+      "auth/too-many-requests":  "Zu viele Versuche. Kurz warten.",
+      "auth/invalid-email":      "Ungültige E-Mail-Adresse.",
     };
     errEl.textContent = msgs[err.code] || "Fehler: " + err.message;
     errEl.style.display = "block";
+  } finally {
+    btn.disabled = false;
+    btn.innerHTML = '<i class="ti ti-login"></i> Anmelden';
   }
 };
 
@@ -2016,19 +2021,26 @@ document.getElementById("loginEmail").addEventListener("keydown", e => {
   if (e.key === "Enter") document.getElementById("loginPassword").focus();
 });
 
-document.getElementById("logoutBtn").onclick = () => signOut(auth);
+document.getElementById("logoutBtn").onclick = () => {
+  _totpVerified = false;
+  signOut(auth);
+};
 
 // ── Auth State ────────────────────────────────────────────────
 onAuthStateChanged(auth, async user => {
   if (user) {
-    // Always intercept with TOTP — don't skip if already on TOTP screen
-    if (document.getElementById("totpScreen").style.display === "flex") return;
-    await totpChallenge(user);
+    if (_totpVerified) {
+      // Bereits verifiziert (z.B. nach Page-Reload in selber Session)
+      completLogin(user);
+    } else {
+      // Noch nicht verifiziert → TOTP Challenge
+      await totpChallenge(user);
+    }
   } else {
-    _pendingUser = null;
+    _pendingUser  = null;
+    _totpVerified = false;
     showLogin();
     currentUserUid = null; currentUserEmail = null;
-    document.getElementById("userBadge") && (document.getElementById("userBadge").style.display = "none");
     document.getElementById("logoutBtn").style.display = "none";
     const compose = document.getElementById("notesCompose");
     if (compose) compose.style.display = "none";
