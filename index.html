@@ -1963,8 +1963,6 @@ window.totpCancel = async () => {
 
 function completLogin(user) {
   _pendingUser = null;
-function completLogin(user) {
-  _pendingUser = null;
   document.getElementById("loginScreen").style.display = "none";
   document.getElementById("totpScreen").style.display  = "none";
   currentUserUid   = user.uid;
@@ -1980,54 +1978,54 @@ function completLogin(user) {
   showToast("Willkommen, " + user.email.split("@")[0] + " 👋");
 }
 
-document.getElementById("loginBtn").onclick = async () => {
-  const email    = document.getElementById("loginEmail").value.trim();
-  const password = document.getElementById("loginPassword").value;
-  const errEl    = document.getElementById("loginError");
-  const btn      = document.getElementById("loginBtn");
+document.addEventListener("DOMContentLoaded", () => {
+  const loginBtn = document.getElementById("loginBtn");
+  if (!loginBtn) return;
 
-  if (!email || !password) {
-    errEl.textContent = "Bitte E-Mail und Passwort eingeben.";
-    errEl.style.display = "block";
-    return;
-  }
-  btn.disabled = true;
-  btn.innerHTML = '<i class="ti ti-loader-2" style="animation:spin 1s linear infinite"></i> Anmelden …';
-  errEl.style.display = "none";
-  _totpVerified = false;
+  loginBtn.onclick = async () => {
+    const email    = document.getElementById("loginEmail").value.trim();
+    const password = document.getElementById("loginPassword").value;
+    const errEl    = document.getElementById("loginError");
 
-  try {
-    await signInWithEmailAndPassword(auth, email, password);
-    // onAuthStateChanged übernimmt ab hier
-  } catch (err) {
-    btn.disabled = false;
-    btn.innerHTML = '<i class="ti ti-login"></i> Anmelden';
-    const msgs = {
-      "auth/invalid-credential": "E-Mail oder Passwort falsch.",
-      "auth/user-not-found":     "Kein Konto mit dieser E-Mail.",
-      "auth/wrong-password":     "Passwort falsch.",
-      "auth/too-many-requests":  "Zu viele Versuche. Kurz warten.",
-      "auth/invalid-email":      "Ungültige E-Mail-Adresse.",
-    };
-    errEl.textContent = msgs[err.code] || "Fehler: " + err.message;
-    errEl.style.display = "block";
-  } finally {
-    btn.disabled = false;
-    btn.innerHTML = '<i class="ti ti-login"></i> Anmelden';
-  }
-};
+    if (!email || !password) {
+      errEl.textContent = "Bitte E-Mail und Passwort eingeben.";
+      errEl.style.display = "block";
+      return;
+    }
+    loginBtn.disabled = true;
+    loginBtn.innerHTML = '<i class="ti ti-loader-2" style="animation:spin 1s linear infinite"></i> Anmelden …';
+    errEl.style.display = "none";
+    _totpVerified = false;
 
-document.getElementById("loginPassword").addEventListener("keydown", e => {
-  if (e.key === "Enter") document.getElementById("loginBtn").click();
+    try {
+      await signInWithEmailAndPassword(auth, email, password);
+    } catch (err) {
+      const msgs = {
+        "auth/invalid-credential": "E-Mail oder Passwort falsch.",
+        "auth/user-not-found":     "Kein Konto mit dieser E-Mail.",
+        "auth/wrong-password":     "Passwort falsch.",
+        "auth/too-many-requests":  "Zu viele Versuche. Kurz warten.",
+        "auth/invalid-email":      "Ungültige E-Mail-Adresse.",
+      };
+      errEl.textContent = msgs[err.code] || "Fehler: " + err.message;
+      errEl.style.display = "block";
+    } finally {
+      loginBtn.disabled = false;
+      loginBtn.innerHTML = '<i class="ti ti-login"></i> Anmelden';
+    }
+  };
+
+  document.getElementById("loginPassword")?.addEventListener("keydown", e => {
+    if (e.key === "Enter") loginBtn.click();
+  });
+  document.getElementById("loginEmail")?.addEventListener("keydown", e => {
+    if (e.key === "Enter") document.getElementById("loginPassword").focus();
+  });
+  document.getElementById("logoutBtn")?.addEventListener("click", () => {
+    _totpVerified = false;
+    signOut(auth);
+  });
 });
-document.getElementById("loginEmail").addEventListener("keydown", e => {
-  if (e.key === "Enter") document.getElementById("loginPassword").focus();
-});
-
-document.getElementById("logoutBtn").onclick = () => {
-  _totpVerified = false;
-  signOut(auth);
-};
 
 // ── Auth State ────────────────────────────────────────────────
 // TOTP temporär deaktiviert — zum Aktivieren: _totpVerified = false lassen und completLogin durch totpChallenge ersetzen
