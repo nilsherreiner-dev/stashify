@@ -220,9 +220,9 @@ header {
 main {
   padding: 1.75rem 2rem;
   margin-left: 280px;
-  transition: margin-left 0.25s ease;
-  min-width: 0;
   margin-right: 260px;
+  transition: margin-left 0.25s ease, margin-right 0.25s ease;
+  min-width: 0;
 }
 
 /* ── Dokumente Sidebar (fixed rechts) ── */
@@ -602,7 +602,7 @@ textarea {
 .multi-result ul { margin: 6px 0 0 18px; line-height: 1.9; }
 
 /* ── Grid ── */
-.grid-wrap { overflow-x: auto; padding-bottom: 1rem; }
+.grid-wrap { overflow-x: auto; padding-bottom: 1rem; max-width: 900px; }
 
 .lager-grid {
   display: flex;
