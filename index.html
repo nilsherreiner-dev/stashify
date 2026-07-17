@@ -225,6 +225,12 @@ main {
   min-width: 0;
 }
 
+/* Innerer Wrapper zentriert den Content */
+.main-inner {
+  max-width: 980px;
+  margin: 0 auto;
+}
+
 /* ── Dokumente Sidebar (fixed rechts) ── */
 .docs-sidebar {
   width: 260px;
@@ -1586,6 +1592,7 @@ textarea {
 </aside>
 
 <main>
+<div class="main-inner">
   <div class="toolbar">
     <div class="search-wrap">
       <input type="search" id="searchInput" placeholder="Name oder Ordernummer suchen …" style="flex:1;" />
@@ -1611,6 +1618,7 @@ textarea {
       <button class="add-row-btn" id="addRowBtn"><i class="ti ti-plus"></i> Neue Reihe</button>
     </div>
   </div>
+</div>
 </main>
 
 <!-- ── Dokumente Sidebar ── -->
